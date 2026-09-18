@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>CHU Bingo</title>
 
 <style>
@@ -35,10 +35,6 @@ header{
   border-radius:15px;
   padding:20px;
   margin-top:20px;
-}
-
-h1{
-  margin-top:5px;
 }
 
 #calledNumber{
@@ -93,10 +89,6 @@ button{
   font-weight:bold;
 }
 
-.bingo-card{
-  margin-top:25px;
-}
-
 .grid{
   display:grid;
   grid-template-columns:repeat(5,1fr);
@@ -123,6 +115,12 @@ button{
 .free{
   background:#55efc4;
 }
+
+.marked{
+  background:#ff7675;
+  color:white;
+  transform:scale(.95);
+}
 </style>
 </head>
 
@@ -133,7 +131,7 @@ button{
 <div class="container">
 
 <div class="card">
-<h1>Calling Number</h1>
+<h2>Calling Number</h2>
 
 <div id="calledNumber">---</div>
 
@@ -146,99 +144,25 @@ button{
 </div>
 </div>
 
-<div class="card bingo-card">
+<div class="card">
 <h2>Your Bingo Card</h2>
 
-<div class="grid">
+<div class="grid" id="bingoCard">
+
 <div class="cell head">B</div>
 <div class="cell head">I</div>
 <div class="cell head">N</div>
 <div class="cell head">G</div>
 <div class="cell head">O</div>
 
-<div class="cell">1</div>
-<div class="cell">16</div>
-<div class="cell">31</div>
-<div class="cell">46</div>
-<div class="cell">61</div>
+<div class="cell" data-number="1">1</div>
+<div class="cell" data-number="16">16</div>
+<div class="cell" data-number="31">31</div>
+<div class="cell" data-number="46">46</div>
+<div class="cell" data-number="61">61</div>
 
-<div class="cell">5</div>
-<div class="cell">20</div>
-<div class="cell">35</div>
-<div class="cell">50</div>
-<div class="cell">65</div>
-
-<div class="cell">9</div>
-<div class="cell">24</div>
-<div class="cell free">FREE</div>
-<div class="cell">54</div>
-<div class="cell">69</div>
-
-<div class="cell">12</div>
-<div class="cell">27</div>
-<div class="cell">42</div>
-<div class="cell">57</div>
-<div class="cell">72</div>
-
-<div class="cell">15</div>
-<div class="cell">30</div>
-<div class="cell">45</div>
-<div class="cell">60</div>
-<div class="cell">75</div>
-</div>
-</div>
-
-</div>
-
-<script>
-let calledNumbers = [];
-
-function callNumber(){
-
-  if(calledNumbers.length >= 75){
-    alert("All 75 numbers have been called!");
-    return;
-  }
-
-  let number;
-
-  do{
-    number = Math.floor(Math.random() * 75) + 1;
-  }while(calledNumbers.includes(number));
-
-  calledNumbers.push(number);
-
-  let letter;
-
-  if(number <= 15){
-    letter = "B";
-  }else if(number <= 30){
-    letter = "I";
-  }else if(number <= 45){
-    letter = "N";
-  }else if(number <= 60){
-    letter = "G";
-  }else{
-    letter = "O";
-  }
-
-  document.getElementById("calledNumber").textContent =
-    letter + "-" + number;
-
-  let item = document.createElement("div");
-  item.className = "number";
-  item.textContent = letter + "-" + number;
-
-  document.getElementById("history").prepend(item);
-}
-
-function resetGame(){
-  calledNumbers = [];
-  document.getElementById("calledNumber").textContent = "---";
-  document.getElementById("history").innerHTML = "";
-}
-</script>
-
-</body>
-</html>
+<div class="cell" data-number="5">5</div>
+<div class="cell" data-number="20">20</div>
+<div class="cell" data-number="35">35</div>
+<div class="cell" data-number="50">50</
 ```
