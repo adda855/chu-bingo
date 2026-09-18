@@ -1,153 +1,111 @@
 ```html
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CHU Bingo</title>
 
 <style>
-*{box-sizing:border-box}
-
 body{
   margin:0;
-  font-family:Arial,sans-serif;
   background:#0b1238;
   color:white;
+  font-family:Arial;
   text-align:center;
 }
 
-header{
+h1{
   background:#11194a;
-  padding:18px;
-  font-size:28px;
-  font-weight:bold;
-}
-
-.container{
-  max-width:500px;
-  margin:auto;
   padding:20px;
+  margin:0;
 }
 
-.card{
-  background:#171f55;
-  border-radius:15px;
-  padding:20px;
-  margin-top:20px;
-}
-
-#calledNumber{
+#number{
   font-size:55px;
-  font-weight:bold;
   color:#ffd32a;
-  margin:20px 0;
-  min-height:70px;
+  margin:30px;
+  font-weight:bold;
 }
 
 button{
+  padding:18px 30px;
+  margin:8px;
   border:0;
   border-radius:12px;
-  padding:15px 25px;
-  font-size:18px;
+  font-size:20px;
   font-weight:bold;
-  cursor:pointer;
-  margin:8px;
 }
 
-.call{
+#call{
   background:#ffd32a;
   color:#111;
 }
 
-.reset{
+#reset{
   background:#e74c3c;
   color:white;
 }
 
-.history{
-  margin-top:20px;
-  text-align:left;
-}
-
-.history-title{
-  font-size:20px;
-  font-weight:bold;
-  margin-bottom:10px;
-}
-
 #history{
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
+  margin:20px;
 }
 
-.number{
+.called{
+  display:inline-block;
   background:#292f6b;
   padding:8px 12px;
+  margin:4px;
   border-radius:8px;
-  font-weight:bold;
+}
+
+.card{
+  max-width:450px;
+  margin:20px auto;
+  padding:15px;
 }
 
 .grid{
   display:grid;
   grid-template-columns:repeat(5,1fr);
   gap:5px;
-  margin-top:10px;
 }
 
 .cell{
   background:white;
   color:#111;
-  padding:12px 2px;
+  padding:15px 5px;
   border-radius:5px;
   font-weight:bold;
-  min-height:45px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
 }
 
 .head{
   background:#ffd32a;
 }
 
-.free{
-  background:#55efc4;
-}
-
 .marked{
-  background:#ff7675;
+  background:#ff4757;
   color:white;
-  transform:scale(.95);
 }
 </style>
 </head>
 
 <body>
 
-<header>🎱 CHU BINGO</header>
+<h1>🎱 CHU BINGO</h1>
 
-<div class="container">
+<div id="number">---</div>
 
-<div class="card">
-<h2>Calling Number</h2>
+<button id="call">CALL NUMBER</button>
+<button id="reset">RESET</button>
 
-<div id="calledNumber">---</div>
-
-<button class="call" onclick="callNumber()">CALL NUMBER</button>
-<button class="reset" onclick="resetGame()">RESET</button>
-
-<div class="history">
-<div class="history-title">Called Numbers</div>
+<h2>Called Numbers</h2>
 <div id="history"></div>
-</div>
-</div>
 
 <div class="card">
 <h2>Your Bingo Card</h2>
 
-<div class="grid" id="bingoCard">
+<div class="grid">
 
 <div class="cell head">B</div>
 <div class="cell head">I</div>
@@ -155,14 +113,102 @@ button{
 <div class="cell head">G</div>
 <div class="cell head">O</div>
 
-<div class="cell" data-number="1">1</div>
-<div class="cell" data-number="16">16</div>
-<div class="cell" data-number="31">31</div>
-<div class="cell" data-number="46">46</div>
-<div class="cell" data-number="61">61</div>
+<div class="cell" data-n="1">1</div>
+<div class="cell" data-n="16">16</div>
+<div class="cell" data-n="31">31</div>
+<div class="cell" data-n="46">46</div>
+<div class="cell" data-n="61">61</div>
 
-<div class="cell" data-number="5">5</div>
-<div class="cell" data-number="20">20</div>
-<div class="cell" data-number="35">35</div>
-<div class="cell" data-number="50">50</
+<div class="cell" data-n="5">5</div>
+<div class="cell" data-n="20">20</div>
+<div class="cell" data-n="35">35</div>
+<div class="cell" data-n="50">50</div>
+<div class="cell" data-n="65">65</div>
+
+<div class="cell" data-n="9">9</div>
+<div class="cell" data-n="24">24</div>
+<div class="cell marked">FREE</div>
+<div class="cell" data-n="54">54</div>
+<div class="cell" data-n="69">69</div>
+
+<div class="cell" data-n="12">12</div>
+<div class="cell" data-n="27">27</div>
+<div class="cell" data-n="42">42</div>
+<div class="cell" data-n="57">57</div>
+<div class="cell" data-n="72">72</div>
+
+<div class="cell" data-n="15">15</div>
+<div class="cell" data-n="30">30</div>
+<div class="cell" data-n="45">45</div>
+<div class="cell" data-n="60">60</div>
+<div class="cell" data-n="75">75</div>
+
+</div>
+</div>
+
+<script>
+
+var numbers=[];
+
+document.getElementById("call").onclick=function(){
+
+  if(numbers.length==75){
+    alert("All numbers have been called!");
+    return;
+  }
+
+  var n;
+
+  do{
+    n=Math.floor(Math.random()*75)+1;
+  }while(numbers.indexOf(n)!=-1);
+
+  numbers.push(n);
+
+  var letter;
+
+  if(n<=15) letter="B";
+  else if(n<=30) letter="I";
+  else if(n<=45) letter="N";
+  else if(n<=60) letter="G";
+  else letter="O";
+
+  document.getElementById("number").innerHTML=letter+"-"+n;
+
+  var item=document.createElement("span");
+  item.className="called";
+  item.innerHTML=letter+"-"+n;
+
+  document.getElementById("history").prepend(item);
+
+  var cell=document.querySelector('[data-n="'+n+'"]');
+
+  if(cell){
+    cell.classList.add("marked");
+  }
+
+};
+
+document.getElementById("reset").onclick=function(){
+
+  numbers=[];
+
+  document.getElementById("number").innerHTML="---";
+
+  document.getElementById("history").innerHTML="";
+
+  document.querySelectorAll(".marked").forEach(function(cell){
+
+    if(cell.innerHTML!="FREE"){
+      cell.classList.remove("marked");
+    }
+
+  });
+
+};
+
+</script>
+
+</body>
+</html>
 ```
