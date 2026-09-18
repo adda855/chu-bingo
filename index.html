@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,229 +7,109 @@
 <title>CHU Bingo</title>
 
 <style>
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
   margin:0;
   font-family:Arial,sans-serif;
-  background:#0b1238;
+  background:#08122b;
   color:white;
-  min-height:100vh;
+  text-align:center;
 }
 
 header{
-  background:#11194a;
   padding:18px;
-  text-align:center;
+  background:#111d42;
   font-size:28px;
   font-weight:bold;
-  color:#ffd32a;
 }
 
 .container{
-  width:100%;
-  max-width:600px;
+  max-width:500px;
   margin:auto;
   padding:20px;
 }
 
-.screen{
-  display:none;
+.balance{
+  background:#172653;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:20px;
 }
 
-.screen.active{
-  display:block;
+.balance span{
+  color:#ffd32a;
+  font-size:22px;
+  font-weight:bold;
+}
+
+.current{
+  background:#24136b;
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:20px;
+}
+
+.current-title{
+  font-size:16px;
+  margin-bottom:8px;
+}
+
+.number{
+  font-size:60px;
+  font-weight:bold;
+  color:#ffd32a;
 }
 
 .card{
-  background:#151f55;
-  border-radius:25px;
-  padding:25px 20px;
-  text-align:center;
-  box-shadow:0 10px 30px rgba(0,0,0,.3);
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:6px;
+  margin-top:20px;
 }
 
-.ball{
-  width:75px;
-  height:75px;
-  border-radius:50%;
-  background:#777;
+.cell{
+  background:white;
   color:#111;
+  aspect-ratio:1;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:38px;
+  font-size:20px;
   font-weight:bold;
-  margin:10px auto 20px;
+  border-radius:6px;
 }
 
-h1{
-  color:#ffd32a;
-  font-size:42px;
-  margin:10px 0;
+.cell.header{
+  background:#ffd32a;
+  color:#111;
 }
 
-h2{
-  color:#ffd32a;
-}
-
-p{
-  color:#cbd3f5;
-  font-size:18px;
-  line-height:1.5;
-}
-
-input{
-  width:100%;
-  padding:18px;
-  border:0;
-  border-radius:15px;
-  font-size:18px;
-  margin:15px 0;
-  text-align:center;
+.cell.marked{
+  background:#35d07f;
+  color:white;
 }
 
 button{
   width:100%;
-  padding:17px;
   border:0;
-  border-radius:15px;
+  padding:15px;
+  margin-top:20px;
+  border-radius:10px;
   background:#ffd32a;
   color:#111;
-  font-size:20px;
+  font-size:18px;
   font-weight:bold;
-  margin-top:10px;
-  cursor:pointer;
 }
 
 button:active{
   transform:scale(.98);
 }
 
-.secondary{
-  background:#29366d;
-  color:white;
-}
-
-.dashboard{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:15px;
-  margin-top:20px;
-}
-
-.stat{
-  background:#1b2862;
-  border-radius:18px;
-  padding:20px 10px;
-  text-align:center;
-}
-
-.stat small{
-  display:block;
-  color:#bfc8ef;
-  margin-bottom:8px;
-}
-
-.stat strong{
-  color:#ffd32a;
-  font-size:22px;
-}
-
-.game{
-  margin-top:20px;
-  background:#151f55;
-  border-radius:25px;
-  padding:20px;
-}
-
-.current{
-  text-align:center;
-  margin-bottom:20px;
-}
-
-.current span{
-  width:100px;
-  height:100px;
-  border-radius:50%;
-  background:#ffd32a;
-  color:#111;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:45px;
-  font-weight:bold;
-  margin:10px auto;
-}
-
-.bingo{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:6px;
-  margin-top:15px;
-}
-
-.cell{
-  aspect-ratio:1;
-  background:white;
-  color:#111;
-  border-radius:8px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:18px;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-.cell.marked{
-  background:#ffd32a;
-  color:#111;
-}
-
-.cell.free{
-  background:#8d99c7;
-  color:white;
-}
-
-.columns{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:6px;
-  text-align:center;
-  font-weight:bold;
-  color:#ffd32a;
-  margin-bottom:5px;
-}
-
 .message{
-  min-height:28px;
-  color:#ffd32a;
-  text-align:center;
-  font-weight:bold;
   margin-top:15px;
-}
-
-.footer{
-  text-align:center;
-  color:#8995c9;
-  margin:30px 0 10px;
-}
-
-@media(max-width:400px){
-  h1{
-    font-size:36px;
-  }
-
-  .container{
-    padding:12px;
-  }
-
-  .cell{
-    font-size:15px;
-  }
+  min-height:24px;
+  font-weight:bold;
 }
 </style>
 </head>
@@ -239,419 +120,169 @@ button:active{
 
 <div class="container">
 
-  <!-- LOGIN -->
-  <section id="login" class="screen active">
-    <div class="card">
-
-      <div class="ball">8</div>
-
-      <h1>CHU<br>BINGO</h1>
-
-      <p>
-        Welcome to the new CHU Bingo
-      </p>
-
-      <input
-        id="playerName"
-        type="text"
-        placeholder="Enter your name"
-        maxlength="20"
-      >
-
-      <button onclick="login()">
-        START
-      </button>
-
-    </div>
-  </section>
-
-
-  <!-- DASHBOARD -->
-  <section id="dashboard" class="screen">
-
-    <div class="card">
-
-      <h1>CHU BINGO</h1>
-
-      <p>
-        Welcome, <strong id="welcomeName"></strong>
-      </p>
-
-      <div class="dashboard">
-
-        <div class="stat">
-          <small>Player ID</small>
-          <strong id="playerId">CHU0001</strong>
-        </div>
-
-        <div class="stat">
-          <small>Demo Balance</small>
-          <strong>500 ETB</strong>
-        </div>
-
-      </div>
-
-      <button onclick="startGame()">
-        GET BINGO CARD
-      </button>
-
-      <button class="secondary" onclick="logout()">
-        LOGOUT
-      </button>
-
-    </div>
-
-  </section>
-
-
-  <!-- GAME -->
-  <section id="game" class="screen">
-
-    <div class="game">
-
-      <h2 style="text-align:center;">
-        CHU BINGO GAME
-      </h2>
-
-      <div class="current">
-        <p>Current Number</p>
-        <span id="currentNumber">—</span>
-      </div>
-
-      <button onclick="callNumber()">
-        CALL NUMBER
-      </button>
-
-      <div class="columns">
-        <div>B</div>
-        <div>I</div>
-        <div>N</div>
-        <div>G</div>
-        <div>O</div>
-      </div>
-
-      <div id="bingoCard" class="bingo"></div>
-
-      <div id="message" class="message"></div>
-
-      <button class="secondary" onclick="newCard()">
-        NEW CARD
-      </button>
-
-      <button class="secondary" onclick="backDashboard()">
-        DASHBOARD
-      </button>
-
-    </div>
-
-  </section>
-
-  <div class="footer">
-    CHU Bingo
+  <div class="balance">
+    Demo Balance:
+    <span>500 ETB</span>
   </div>
+
+  <div class="current">
+    <div class="current-title">CURRENT NUMBER</div>
+    <div class="number" id="currentNumber">--</div>
+  </div>
+
+  <div class="card" id="bingoCard"></div>
+
+  <button onclick="callNumber()">CALL NUMBER</button>
+
+  <button onclick="checkBingo()">CHECK BINGO</button>
+
+  <div class="message" id="message"></div>
 
 </div>
 
-
 <script>
+const card = document.getElementById("bingoCard");
+const currentNumber = document.getElementById("currentNumber");
+const message = document.getElementById("message");
 
-let player = "";
-let numbersCalled = [];
-let cardNumbers = [];
+let calledNumbers = [];
+let playerNumbers = [];
 
-function showScreen(id){
+function randomNumbers(min,max,count){
+  let numbers = [];
 
-  document.querySelectorAll(".screen").forEach(function(screen){
-    screen.classList.remove("active");
+  while(numbers.length < count){
+    let n = Math.floor(Math.random()*(max-min+1))+min;
+    if(!numbers.includes(n)){
+      numbers.push(n);
+    }
+  }
+
+  return numbers;
+}
+
+function createCard(){
+
+  card.innerHTML = "";
+
+  const letters = ["B","I","N","G","O"];
+
+  letters.forEach(letter=>{
+    const div = document.createElement("div");
+    div.className = "cell header";
+    div.textContent = letter;
+    card.appendChild(div);
   });
 
-  document.getElementById(id).classList.add("active");
-}
+  for(let row=0; row<5; row++){
 
+    for(let col=0; col<5; col++){
 
-function login(){
+      let number;
 
-  const input = document.getElementById("playerName");
-  const name = input.value.trim();
+      if(row === 2 && col === 2){
+        number = "FREE";
+      }else{
 
-  if(!name){
-    alert("Please enter your name.");
-    return;
-  }
+        const min = col*15+1;
+        const max = col*15+15;
 
-  player = name;
+        let available = randomNumbers(min,max,15);
 
-  document.getElementById("welcomeName").textContent = player;
+        do{
+          number = available[Math.floor(Math.random()*available.length)];
+        }while(playerNumbers.includes(number));
 
-  document.getElementById("playerId").textContent =
-    "CHU" + Math.floor(100000 + Math.random()*900000);
+        playerNumbers.push(number);
+      }
 
-  showScreen("dashboard");
-}
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.textContent = number;
 
-
-function logout(){
-
-  player = "";
-  document.getElementById("playerName").value = "";
-
-  showScreen("login");
-}
-
-
-function startGame(){
-
-  newCard();
-  showScreen("game");
-
-}
-
-
-function backDashboard(){
-
-  showScreen("dashboard");
-
-}
-
-
-function shuffle(array){
-
-  for(let i=array.length-1;i>0;i--){
-
-    const j=Math.floor(Math.random()*(i+1));
-
-    [array[i],array[j]]=[array[j],array[i]];
-
-  }
-
-  return array;
-}
-
-
-function createColumn(min,max){
-
-  const numbers=[];
-
-  for(let n=min;n<=max;n++){
-    numbers.push(n);
-  }
-
-  shuffle(numbers);
-
-  return numbers.slice(0,5);
-
-}
-
-
-function newCard(){
-
-  numbersCalled=[];
-
-  document.getElementById("currentNumber").textContent="—";
-
-  document.getElementById("message").textContent="";
-
-  const B=createColumn(1,15);
-  const I=createColumn(16,30);
-  const N=createColumn(31,45);
-  const G=createColumn(46,60);
-  const O=createColumn(61,75);
-
-  cardNumbers=[];
-
-  for(let row=0;row<5;row++){
-
-    cardNumbers.push([
-      B[row],
-      I[row],
-      N[row],
-      G[row],
-      O[row]
-    ]);
-
-  }
-
-  cardNumbers[2][2]="FREE";
-
-  drawCard();
-
-}
-
-
-function drawCard(){
-
-  const board=document.getElementById("bingoCard");
-
-  board.innerHTML="";
-
-  for(let row=0;row<5;row++){
-
-    for(let col=0;col<5;col++){
-
-      const cell=document.createElement("div");
-
-      cell.className="cell";
-
-      const value=cardNumbers[row][col];
-
-      cell.textContent=value;
-
-      if(value==="FREE"){
-        cell.classList.add("free");
+      if(number === "FREE"){
         cell.classList.add("marked");
       }
 
-      cell.onclick=function(){
-
-        if(value!=="FREE"){
+      cell.onclick = function(){
+        if(number !== "FREE"){
           cell.classList.toggle("marked");
         }
-
-        checkBingo();
-
       };
 
-      board.appendChild(cell);
-
+      card.appendChild(cell);
     }
-
   }
-
 }
-
 
 function callNumber(){
 
-  if(numbersCalled.length>=75){
-
-    document.getElementById("message").textContent =
-      "All numbers have been called.";
-
+  if(calledNumbers.length >= 75){
+    message.textContent = "All numbers have been called.";
     return;
   }
 
   let number;
 
   do{
+    number = Math.floor(Math.random()*75)+1;
+  }while(calledNumbers.includes(number));
 
-    number=Math.floor(Math.random()*75)+1;
+  calledNumbers.push(number);
 
-  }while(numbersCalled.includes(number));
+  currentNumber.textContent = number;
 
-  numbersCalled.push(number);
-
-  document.getElementById("currentNumber").textContent=number;
-
-  highlightNumber(number);
-
-  checkBingo();
-
+  message.textContent = "Number " + number + " called!";
 }
-
-
-function highlightNumber(number){
-
-  const cells=document.querySelectorAll(".cell");
-
-  cells.forEach(function(cell){
-
-    if(Number(cell.textContent)===number){
-
-      cell.classList.add("marked");
-
-    }
-
-  });
-
-}
-
 
 function checkBingo(){
 
-  const cells=document.querySelectorAll(".cell");
+  const cells = document.querySelectorAll(".cell:not(.header)");
 
-  const marked=[];
+  const marked = [];
 
-  cells.forEach(function(cell){
-
+  cells.forEach(cell=>{
     marked.push(
       cell.classList.contains("marked")
     );
-
   });
 
+  let win = false;
 
-  for(let row=0;row<5;row++){
+  for(let r=0;r<5;r++){
+    let rowWin = true;
 
-    let complete=true;
-
-    for(let col=0;col<5;col++){
-
-      if(!marked[row*5+col]){
-        complete=false;
+    for(let c=0;c<5;c++){
+      if(!marked[r*5+c]){
+        rowWin=false;
       }
-
     }
 
-    if(complete){
-      win();
-      return;
-    }
-
+    if(rowWin) win=true;
   }
 
+  for(let c=0;c<5;c++){
+    let colWin = true;
 
-  for(let col=0;col<5;col++){
-
-    let complete=true;
-
-    for(let row=0;row<5;row++){
-
-      if(!marked[row*5+col]){
-        complete=false;
+    for(let r=0;r<5;r++){
+      if(!marked[r*5+c]){
+        colWin=false;
       }
-
     }
 
-    if(complete){
-      win();
-      return;
-    }
-
+    if(colWin) win=true;
   }
 
-
-  let diagonal1=true;
-  let diagonal2=true;
-
-  for(let i=0;i<5;i++){
-
-    if(!marked[i*5+i]){
-      diagonal1=false;
-    }
-
-    if(!marked[i*5+(4-i)]){
-      diagonal2=false;
-    }
-
+  if(win){
+    message.textContent = "🎉 BINGO! You won!";
+  }else{
+    message.textContent = "No Bingo yet. Keep playing!";
   }
-
-
-  if(diagonal1 || diagonal2){
-    win();
-  }
-
 }
 
-
-function win(){
-
-  document.getElementById("message").textContent =
-    "🎉 BINGO! Congratulations " + player + "!";
-
-}
-
+createCard();
 </script>
 
 </body>
 </html>
+```
