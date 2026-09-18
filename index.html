@@ -8,7 +8,432 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport"```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHU Bingo</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Arial,sans-serif;
+  background:#08112f;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.app{
+  width:94%;
+  max-width:450px;
+  background:#111c4d;
+  border-radius:24px;
+  padding:22px 16px;
+  text-align:center;
+  box-shadow:0 12px 40px rgba(0,0,0,.45);
+}
+
+h1{
+  margin:5px 0;
+  color:#ffd32a;
+  font-size:32px;
+}
+
+.subtitle{
+  color:#bfc8f5;
+  margin:8px 0 18px;
+}
+
+.player-info{
+  background:#19265c;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:18px;
+}
+
+.balance{
+  color:#ffd32a;
+  font-weight:bold;
+}
+
+.bingo-title{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:5px;
+  margin-bottom:5px;
+}
+
+.bingo-title div{
+  background:#ffd32a;
+  color:#10183f;
+  font-size:20px;
+  font-weight:bold;
+  padding:9px 0;
+  border-radius:7px;
+}
+
+.card{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:5px;
+}
+
+.cell{
+  aspect-ratio:1/1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#f5f6ff;
+  color:#10183f;
+  border-radius:7px;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
+  user-select:none;
+}
+
+.cell.selected{
+  background:#ffd32a;
+  color:#10183f;
+  transform:scale(.94);
+}
+
+.cell.free{
+  background:#8d5cff;
+  color:white;
+  font-size:14px;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border:0;
+  border-radius:12px;
+  background:#ffd32a;
+  color:#10183f;
+  font-size:17px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-top:18px;
+}
+
+.secondary{
+  background:#29345f;
+  color:white;
+  margin-top:10px;
+}
+
+.message{
+  min-height:22px;
+  margin-top:15px;
+  color:#ffd32a;
+  font-weight:bold;
+}
+
+.hidden{
+  display:none;
+}
+
+.footer{
+  margin-top:20px;
+  color:#7f8abe;
+  font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <h1>🎱 CHU BINGO</h1>
+
+  <div class="subtitle">
+    Your Bingo Card
+  </div>
+
+  <div class="player-info">
+    Player:
+    <strong id="playerName">Guest</strong>
+    &nbsp; | &nbsp;
+    <span class="balance">500 ETB</span>
+  </div>
+
+  <div class="bingo-title">
+    <div>B</div>
+    <div>I</div>
+    <div>N</div>
+    <div>G</div>
+    <div>O</div>
+  </div>
+
+  <div id="card" class="card"></div>
+
+  <button onclick="newCard()">
+    🔄 NEW CARD
+  </button>
+
+  <button class="secondary" onclick="logout()">
+    LOGOUT
+  </button>
+
+  <div id="message" class="message"></div>
+
+  <div class="footer">
+    CHU Bingo • Step 3
+  </div>
+
+</div>
+
+<script>
+
+let numbers = [];
+
+function randomNumber(min,max,used){
+
+  let number;
+
+  do{
+    number =
+      Math.floor(Math.random() * (max-min+1)) + min;
+  }while(used.includes(number));
+
+  used.push(number);
+
+  return number;
+}
+
+
+function createCard(){
+
+  const card =
+    document.getElementById("card");
+
+  card.innerHTML = "";
+
+  numbers = [];
+
+  const used = [];
+
+  // B: 1-15
+  for(let i=0;i<5;i++){
+    numbers.push(
+      randomNumber(1,15,used)
+    );
+  }
+
+  // I: 16-30
+  for(let i=0;i<5;i++){
+    numbers.push(
+      randomNumber(16,30,used)
+    );
+  }
+
+  // N: 31-45
+  for(let i=0;i<5;i++){
+
+    if(i === 2){
+      numbers.push("FREE");
+    }else{
+      numbers.push(
+        randomNumber(31,45,used)
+      );
+    }
+
+  }
+
+  // G: 46-60
+  for(let i=0;i<5;i++){
+    numbers.push(
+      randomNumber(46,60,used)
+    );
+  }
+
+  // O: 61-75
+  for(let i=0;i<5;i++){
+    numbers.push(
+      randomNumber(61,75,used)
+    );
+  }
+
+  /*
+    The numbers above are stored by column.
+    We display the card row by row.
+  */
+
+  for(let row=0;row<5;row++){
+
+    for(let column=0;column<5;column++){
+
+      const index =
+        column * 5 + row;
+
+      const cell =
+        document.createElement("div");
+
+      cell.className = "cell";
+
+      cell.textContent =
+        numbers[index];
+
+      if(numbers[index] === "FREE"){
+
+        cell.classList.add("free");
+        cell.classList.add("selected");
+
+      }else{
+
+        cell.onclick = function(){
+
+          cell.classList.toggle("selected");
+
+          checkBingo();
+
+        };
+
+      }
+
+      card.appendChild(cell);
+    }
+  }
+}
+
+
+function newCard(){
+
+  document.getElementById("message").textContent =
+    "";
+
+  createCard();
+}
+
+
+function checkBingo(){
+
+  const cells =
+    document.querySelectorAll(".cell");
+
+  const selected =
+    Array.from(cells).map(
+      cell => cell.classList.contains("selected")
+    );
+
+  // Check rows
+  for(let row=0;row<5;row++){
+
+    let complete = true;
+
+    for(let col=0;col<5;col++){
+
+      if(!selected[row*5+col]){
+        complete = false;
+      }
+
+    }
+
+    if(complete){
+      win();
+      return;
+    }
+  }
+
+  // Check columns
+  for(let col=0;col<5;col++){
+
+    let complete = true;
+
+    for(let row=0;row<5;row++){
+
+      if(!selected[row*5+col]){
+        complete = false;
+      }
+
+    }
+
+    if(complete){
+      win();
+      return;
+    }
+  }
+
+  // Diagonal 1
+  let diagonal1 = true;
+
+  for(let i=0;i<5;i++){
+
+    if(!selected[i*5+i]){
+      diagonal1 = false;
+    }
+
+  }
+
+  if(diagonal1){
+    win();
+    return;
+  }
+
+  // Diagonal 2
+  let diagonal2 = true;
+
+  for(let i=0;i<5;i++){
+
+    if(!selected[i*5+(4-i)]){
+      diagonal2 = false;
+    }
+
+  }
+
+  if(diagonal2){
+    win();
+  }
+}
+
+
+function win(){
+
+  document.getElementById("message").textContent =
+    "🎉 BINGO! You have a winning card!";
+}
+
+
+function logout(){
+
+  localStorage.removeItem("chuName");
+  localStorage.removeItem("chuID");
+
+  location.reload();
+}
+
+
+window.onload = function(){
+
+  const savedName =
+    localStorage.getItem("chuName");
+
+  if(savedName){
+    document.getElementById("playerName")
+      .textContent = savedName;
+  }
+
+  createCard();
+
+};
+
+</script>
+
+</body>
+</html>
+```
+ content="width=device-width, initial-scale=1.0">
 <title>CHU Bingo</title>
 
 <style>
