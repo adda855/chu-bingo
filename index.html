@@ -1,82 +1,125 @@
 ```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CHU Bingo</title>
 
 <style>
+*{
+  box-sizing:border-box;
+}
+
 body{
   margin:0;
+  font-family:Arial,sans-serif;
   background:#0b1238;
   color:white;
-  font-family:Arial;
   text-align:center;
 }
 
-h1{
+header{
   background:#11194a;
-  padding:20px;
-  margin:0;
+  padding:18px;
+  font-size:28px;
+  font-weight:bold;
 }
 
-#number{
-  font-size:55px;
-  color:#ffd32a;
-  margin:30px;
-  font-weight:bold;
+.container{
+  max-width:500px;
+  margin:auto;
+  padding:20px;
+}
+
+.player{
+  background:#171f59;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:20px;
+}
+
+input{
+  width:100%;
+  padding:13px;
+  border:0;
+  border-radius:8px;
+  margin-top:10px;
+  font-size:16px;
 }
 
 button{
-  padding:18px 30px;
-  margin:8px;
+  width:100%;
+  padding:15px;
+  margin-top:15px;
   border:0;
-  border-radius:12px;
-  font-size:20px;
-  font-weight:bold;
-}
-
-#call{
+  border-radius:10px;
   background:#ffd32a;
   color:#111;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-#reset{
-  background:#e74c3c;
-  color:white;
+button:active{
+  transform:scale(.98);
 }
 
-#history{
-  margin:20px;
+.called-box{
+  background:#2912a8;
+  padding:20px;
+  border-radius:15px;
+  margin:20px 0;
 }
 
-.called{
-  display:inline-block;
-  background:#292f6b;
-  padding:8px 12px;
-  margin:4px;
-  border-radius:8px;
+.called-title{
+  font-size:16px;
 }
 
-.card{
-  max-width:450px;
-  margin:20px auto;
+.called-number{
+  font-size:55px;
+  font-weight:bold;
+  margin-top:8px;
+}
+
+.history{
+  background:#171f59;
   padding:15px;
+  border-radius:12px;
+  margin-bottom:20px;
 }
 
-.grid{
+.history-list{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:7px;
+  margin-top:10px;
+}
+
+.history-list span{
+  background:#333b78;
+  padding:7px 10px;
+  border-radius:6px;
+}
+
+.bingo-card{
   display:grid;
   grid-template-columns:repeat(5,1fr);
   gap:5px;
+  margin-top:20px;
 }
 
 .cell{
   background:white;
   color:#111;
-  padding:15px 5px;
-  border-radius:5px;
+  aspect-ratio:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
   font-weight:bold;
+  border-radius:5px;
 }
 
 .head{
@@ -84,128 +127,338 @@ button{
 }
 
 .marked{
-  background:#ff4757;
+  background:#20d46b;
   color:white;
+}
+
+.free{
+  background:#ff8c00;
+  color:white;
+}
+
+.status{
+  margin-top:15px;
+  font-size:20px;
+  font-weight:bold;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🎱 CHU BINGO</h1>
+<header>🎱 CHU BINGO</header>
 
-<div id="number">---</div>
+<div class="container">
 
-<button id="call">CALL NUMBER</button>
-<button id="reset">RESET</button>
+  <div class="player">
+    <div>Player Name</div>
+    <input id="playerName" type="text" placeholder="Enter your name">
+  </div>
 
-<h2>Called Numbers</h2>
-<div id="history"></div>
+  <div class="called-box">
+    <div class="called-title">CURRENT CALL</div>
+    <div id="calledNumber" class="called-number">---</div>
+  </div>
 
-<div class="card">
-<h2>Your Bingo Card</h2>
+  <button onclick="callNumber()">📢 CALL NUMBER</button>
 
-<div class="grid">
+  <div class="history">
+    <div>Called Numbers</div>
+    <div id="historyList" class="history-list">
+      No numbers called yet
+    </div>
+  </div>
 
-<div class="cell head">B</div>
-<div class="cell head">I</div>
-<div class="cell head">N</div>
-<div class="cell head">G</div>
-<div class="cell head">O</div>
+  <h2>Your Bingo Card</h2>
 
-<div class="cell" data-n="1">1</div>
-<div class="cell" data-n="16">16</div>
-<div class="cell" data-n="31">31</div>
-<div class="cell" data-n="46">46</div>
-<div class="cell" data-n="61">61</div>
+  <div id="bingoCard" class="bingo-card"></div>
 
-<div class="cell" data-n="5">5</div>
-<div class="cell" data-n="20">20</div>
-<div class="cell" data-n="35">35</div>
-<div class="cell" data-n="50">50</div>
-<div class="cell" data-n="65">65</div>
+  <div id="status" class="status"></div>
 
-<div class="cell" data-n="9">9</div>
-<div class="cell" data-n="24">24</div>
-<div class="cell marked">FREE</div>
-<div class="cell" data-n="54">54</div>
-<div class="cell" data-n="69">69</div>
+  <button onclick="newCard()">🔄 NEW CARD</button>
 
-<div class="cell" data-n="12">12</div>
-<div class="cell" data-n="27">27</div>
-<div class="cell" data-n="42">42</div>
-<div class="cell" data-n="57">57</div>
-<div class="cell" data-n="72">72</div>
-
-<div class="cell" data-n="15">15</div>
-<div class="cell" data-n="30">30</div>
-<div class="cell" data-n="45">45</div>
-<div class="cell" data-n="60">60</div>
-<div class="cell" data-n="75">75</div>
-
-</div>
 </div>
 
 <script>
 
-var numbers=[];
+let calledNumbers = [];
+let cardNumbers = [];
 
-document.getElementById("call").onclick=function(){
+/* Generate random number */
+function randomNumber(min,max){
+  return Math.floor(Math.random()*(max-min+1))+min;
+}
 
-  if(numbers.length==75){
-    alert("All numbers have been called!");
+/* Create Bingo card */
+function newCard(){
+
+  calledNumbers = [];
+
+  document.getElementById("calledNumber").textContent = "---";
+
+  document.getElementById("historyList").innerHTML =
+    "No numbers called yet";
+
+  document.getElementById("status").textContent = "";
+
+  cardNumbers = [];
+
+  let ranges = [
+    [1,15],
+    [16,30],
+    [31,45],
+    [46,60],
+    [61,75]
+  ];
+
+  for(let column=0; column<5; column++){
+
+    let numbers=[];
+
+    while(numbers.length<5){
+
+      let n=randomNumber(
+        ranges[column][0],
+        ranges[column][1]
+      );
+
+      if(!numbers.includes(n)){
+        numbers.push(n);
+      }
+    }
+
+    cardNumbers.push(numbers);
+  }
+
+  let card=document.getElementById("bingoCard");
+
+  card.innerHTML="";
+
+  let letters=["B","I","N","G","O"];
+
+  for(let i=0;i<5;i++){
+
+    let cell=document.createElement("div");
+
+    cell.className="cell head";
+
+    cell.textContent=letters[i];
+
+    card.appendChild(cell);
+  }
+
+  for(let row=0;row<5;row++){
+
+    for(let column=0;column<5;column++){
+
+      let cell=document.createElement("div");
+
+      cell.className="cell";
+
+      if(row===2 && column===2){
+
+        cell.textContent="FREE";
+
+        cell.classList.add("free");
+
+      }else{
+
+        cell.textContent=cardNumbers[column][row];
+
+        cell.dataset.number=cardNumbers[column][row];
+
+      }
+
+      card.appendChild(cell);
+    }
+  }
+}
+
+/* Call a number */
+function callNumber(){
+
+  if(calledNumbers.length>=75){
+
+    alert("All 75 numbers have been called!");
+
     return;
   }
 
-  var n;
+  let number;
 
   do{
-    n=Math.floor(Math.random()*75)+1;
-  }while(numbers.indexOf(n)!=-1);
 
-  numbers.push(n);
+    number=randomNumber(1,75);
 
-  var letter;
+  }while(calledNumbers.includes(number));
 
-  if(n<=15) letter="B";
-  else if(n<=30) letter="I";
-  else if(n<=45) letter="N";
-  else if(n<=60) letter="G";
-  else letter="O";
+  calledNumbers.push(number);
 
-  document.getElementById("number").innerHTML=letter+"-"+n;
+  let letter;
 
-  var item=document.createElement("span");
-  item.className="called";
-  item.innerHTML=letter+"-"+n;
-
-  document.getElementById("history").prepend(item);
-
-  var cell=document.querySelector('[data-n="'+n+'"]');
-
-  if(cell){
-    cell.classList.add("marked");
+  if(number<=15){
+    letter="B";
+  }
+  else if(number<=30){
+    letter="I";
+  }
+  else if(number<=45){
+    letter="N";
+  }
+  else if(number<=60){
+    letter="G";
+  }
+  else{
+    letter="O";
   }
 
-};
+  let fullNumber=letter+"-"+number;
 
-document.getElementById("reset").onclick=function(){
+  document.getElementById("calledNumber").textContent=fullNumber;
 
-  numbers=[];
+  updateHistory();
 
-  document.getElementById("number").innerHTML="---";
+  markNumber(number);
 
-  document.getElementById("history").innerHTML="";
+  checkBingo();
+}
 
-  document.querySelectorAll(".marked").forEach(function(cell){
+/* Update history */
+function updateHistory(){
 
-    if(cell.innerHTML!="FREE"){
-      cell.classList.remove("marked");
+  let history=document.getElementById("historyList");
+
+  history.innerHTML="";
+
+  calledNumbers.slice().reverse().forEach(function(number){
+
+    let letter;
+
+    if(number<=15) letter="B";
+    else if(number<=30) letter="I";
+    else if(number<=45) letter="N";
+    else if(number<=60) letter="G";
+    else letter="O";
+
+    let item=document.createElement("span");
+
+    item.textContent=letter+"-"+number;
+
+    history.appendChild(item);
+
+  });
+}
+
+/* Mark matching card number */
+function markNumber(number){
+
+  let cells=document.querySelectorAll(".cell");
+
+  cells.forEach(function(cell){
+
+    if(cell.dataset.number==number){
+
+      cell.classList.add("marked");
+
     }
 
   });
+}
 
-};
+/* Check Bingo */
+function checkBingo(){
+
+  let cells=document.querySelectorAll(".cell");
+
+  let grid=[];
+
+  for(let row=0;row<5;row++){
+
+    grid[row]=[];
+
+    for(let column=0;column<5;column++){
+
+      let index=6 + row*5 + column;
+
+      let cell=cells[index];
+
+      grid[row][column] =
+        cell.classList.contains("marked") ||
+        (row===2 && column===2);
+
+    }
+  }
+
+  for(let row=0;row<5;row++){
+
+    if(grid[row].every(Boolean)){
+
+      bingoWon();
+
+      return;
+    }
+  }
+
+  for(let column=0;column<5;column++){
+
+    let win=true;
+
+    for(let row=0;row<5;row++){
+
+      if(!grid[row][column]){
+
+        win=false;
+
+      }
+
+    }
+
+    if(win){
+
+      bingoWon();
+
+      return;
+    }
+  }
+
+  let diagonal1=true;
+  let diagonal2=true;
+
+  for(let i=0;i<5;i++){
+
+    if(!grid[i][i]){
+      diagonal1=false;
+    }
+
+    if(!grid[i][4-i]){
+      diagonal2=false;
+    }
+
+  }
+
+  if(diagonal1 || diagonal2){
+
+    bingoWon();
+
+  }
+}
+
+/* Bingo winner */
+function bingoWon(){
+
+  let name=document.getElementById("playerName").value;
+
+  if(name.trim()===""){
+    name="Player";
+  }
+
+  document.getElementById("status").textContent =
+    "🎉 BINGO! Congratulations "+name+"!";
+
+}
+
+/* Start with a card */
+newCard();
 
 </script>
 
