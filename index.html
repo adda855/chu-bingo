@@ -12,14 +12,14 @@
 body{
   margin:0;
   font-family:Arial,sans-serif;
-  background:#08122b;
+  background:#0b1238;
   color:white;
   text-align:center;
 }
 
 header{
+  background:#11194a;
   padding:18px;
-  background:#111d42;
   font-size:28px;
   font-weight:bold;
 }
@@ -30,174 +30,215 @@ header{
   padding:20px;
 }
 
-.balance{
-  background:#172653;
-  padding:15px;
-  border-radius:12px;
-  margin-bottom:20px;
-}
-
-.balance span{
-  color:#ffd32a;
-  font-size:22px;
-  font-weight:bold;
-}
-
-.current{
-  background:#24136b;
-  border-radius:16px;
+.card{
+  background:#171f55;
+  border-radius:15px;
   padding:20px;
-  margin-bottom:20px;
+  margin-top:20px;
 }
 
-.current-title{
-  font-size:16px;
-}
-
-.number{
-  font-size:60px;
-  font-weight:bold;
-  color:#ffd32a;
+h1{
   margin-top:5px;
 }
 
-.card{
+#calledNumber{
+  font-size:55px;
+  font-weight:bold;
+  color:#ffd32a;
+  margin:20px 0;
+  min-height:70px;
+}
+
+button{
+  border:0;
+  border-radius:12px;
+  padding:15px 25px;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
+  margin:8px;
+}
+
+.call{
+  background:#ffd32a;
+  color:#111;
+}
+
+.reset{
+  background:#e74c3c;
+  color:white;
+}
+
+.history{
+  margin-top:20px;
+  text-align:left;
+}
+
+.history-title{
+  font-size:20px;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+#history{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.number{
+  background:#292f6b;
+  padding:8px 12px;
+  border-radius:8px;
+  font-weight:bold;
+}
+
+.bingo-card{
+  margin-top:25px;
+}
+
+.grid{
   display:grid;
   grid-template-columns:repeat(5,1fr);
-  gap:6px;
-  margin-top:20px;
+  gap:5px;
+  margin-top:10px;
 }
 
 .cell{
   background:white;
   color:#111;
-  aspect-ratio:1;
+  padding:12px 2px;
+  border-radius:5px;
+  font-weight:bold;
+  min-height:45px;
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:20px;
-  font-weight:bold;
-  border-radius:6px;
 }
 
-.cell.header{
+.head{
   background:#ffd32a;
 }
 
-.cell.called{
-  background:#35d07f;
-  color:white;
-}
-
-.cell.free{
-  background:#35d07f;
-  color:white;
-}
-
-button{
-  width:100%;
-  border:0;
-  padding:15px;
-  margin-top:20px;
-  border-radius:10px;
-  background:#ffd32a;
-  color:#111;
-  font-size:18px;
-  font-weight:bold;
-}
-
-button:active{
-  transform:scale(.98);
-}
-
-.message{
-  margin-top:15px;
-  min-height:24px;
-  font-weight:bold;
-}
-
-.called-list{
-  margin-top:20px;
-  background:#111d42;
-  padding:15px;
-  border-radius:12px;
-}
-
-.called-list-title{
-  font-weight:bold;
-  margin-bottom:10px;
-}
-
-#calledNumbers{
-  line-height:1.8;
-  color:#ffd32a;
+.free{
+  background:#55efc4;
 }
 </style>
 </head>
 
 <body>
 
-<header>CHU BINGO</header>
+<header>🎱 CHU BINGO</header>
 
 <div class="container">
 
-  <div class="balance">
-    Demo Balance:
-    <span>500 ETB</span>
-  </div>
+<div class="card">
+<h1>Calling Number</h1>
 
-  <div class="current">
-    <div class="current-title">CURRENT NUMBER</div>
-    <div class="number" id="currentNumber">--</div>
-  </div>
+<div id="calledNumber">---</div>
 
-  <div class="card" id="bingoCard"></div>
+<button class="call" onclick="callNumber()">CALL NUMBER</button>
+<button class="reset" onclick="resetGame()">RESET</button>
 
-  <button onclick="callNumber()">CALL NUMBER</button>
+<div class="history">
+<div class="history-title">Called Numbers</div>
+<div id="history"></div>
+</div>
+</div>
 
-  <button onclick="checkBingo()">CHECK BINGO</button>
+<div class="card bingo-card">
+<h2>Your Bingo Card</h2>
 
-  <div class="message" id="message"></div>
+<div class="grid">
+<div class="cell head">B</div>
+<div class="cell head">I</div>
+<div class="cell head">N</div>
+<div class="cell head">G</div>
+<div class="cell head">O</div>
 
-  <div class="called-list">
-    <div class="called-list-title">CALLED NUMBERS</div>
-    <div id="calledNumbers">None</div>
-  </div>
+<div class="cell">1</div>
+<div class="cell">16</div>
+<div class="cell">31</div>
+<div class="cell">46</div>
+<div class="cell">61</div>
+
+<div class="cell">5</div>
+<div class="cell">20</div>
+<div class="cell">35</div>
+<div class="cell">50</div>
+<div class="cell">65</div>
+
+<div class="cell">9</div>
+<div class="cell">24</div>
+<div class="cell free">FREE</div>
+<div class="cell">54</div>
+<div class="cell">69</div>
+
+<div class="cell">12</div>
+<div class="cell">27</div>
+<div class="cell">42</div>
+<div class="cell">57</div>
+<div class="cell">72</div>
+
+<div class="cell">15</div>
+<div class="cell">30</div>
+<div class="cell">45</div>
+<div class="cell">60</div>
+<div class="cell">75</div>
+</div>
+</div>
 
 </div>
 
 <script>
-
-const card = document.getElementById("bingoCard");
-const currentNumber = document.getElementById("currentNumber");
-const message = document.getElementById("message");
-const calledNumbersDisplay = document.getElementById("calledNumbers");
-
 let calledNumbers = [];
 
-function randomColumnNumbers(min,max,count){
+function callNumber(){
 
-  let numbers=[];
-
-  while(numbers.length<count){
-
-    let n=Math.floor(Math.random()*(max-min+1))+min;
-
-    if(!numbers.includes(n)){
-      numbers.push(n);
-    }
+  if(calledNumbers.length >= 75){
+    alert("All 75 numbers have been called!");
+    return;
   }
 
-  return numbers;
+  let number;
+
+  do{
+    number = Math.floor(Math.random() * 75) + 1;
+  }while(calledNumbers.includes(number));
+
+  calledNumbers.push(number);
+
+  let letter;
+
+  if(number <= 15){
+    letter = "B";
+  }else if(number <= 30){
+    letter = "I";
+  }else if(number <= 45){
+    letter = "N";
+  }else if(number <= 60){
+    letter = "G";
+  }else{
+    letter = "O";
+  }
+
+  document.getElementById("calledNumber").textContent =
+    letter + "-" + number;
+
+  let item = document.createElement("div");
+  item.className = "number";
+  item.textContent = letter + "-" + number;
+
+  document.getElementById("history").prepend(item);
 }
 
-function createCard(){
+function resetGame(){
+  calledNumbers = [];
+  document.getElementById("calledNumber").textContent = "---";
+  document.getElementById("history").innerHTML = "";
+}
+</script>
 
-  card.innerHTML="";
-
-  const letters=["B","I","N","G","O"];
-
-  letters.forEach(letter=>{
-
-    co
+</body>
+</html>
 ```
