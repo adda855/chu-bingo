@@ -1,0 +1,148 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CHU Bingo</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Arial,sans-serif;
+  background:#0b1238;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.container{
+  width:92%;
+  max-width:420px;
+  background:#11194a;
+  border-radius:20px;
+  padding:30px 22px;
+  text-align:center;
+  box-shadow:0 10px 35px rgba(0,0,0,0.4);
+}
+
+h1{
+  margin:0 0 10px;
+  font-size:36px;
+  color:#ffd32a;
+}
+
+.subtitle{
+  margin-bottom:30px;
+  color:#d9dcff;
+  font-size:16px;
+}
+
+label{
+  display:block;
+  text-align:left;
+  margin-bottom:8px;
+  font-weight:bold;
+}
+
+input{
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  outline:none;
+  margin-bottom:18px;
+}
+
+button{
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:12px;
+  background:#ffd32a;
+  color:#11194a;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+button:active{
+  transform:scale(0.98);
+}
+
+.message{
+  margin-top:18px;
+  min-height:24px;
+  color:#ffd32a;
+  font-weight:bold;
+}
+
+.footer{
+  margin-top:30px;
+  font-size:13px;
+  color:#9fa7d8;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>🎱 CHU BINGO</h1>
+
+  <div class="subtitle">
+    Welcome to CHU Bingo
+  </div>
+
+  <label for="playerName">Player name</label>
+
+  <input
+    type="text"
+    id="playerName"
+    placeholder="Enter your name"
+    maxlength="30"
+  >
+
+  <button onclick="continueGame()">
+    Continue
+  </button>
+
+  <div class="message" id="message"></div>
+
+  <div class="footer">
+    CHU Bingo • Step 1
+  </div>
+
+</div>
+
+<script>
+function continueGame(){
+
+  const name = document.getElementById("playerName").value.trim();
+  const message = document.getElementById("message");
+
+  if(name === ""){
+    message.textContent = "Please enter your name.";
+    return;
+  }
+
+  localStorage.setItem("chuPlayerName", name);
+
+  message.textContent = "Welcome, " + name + "!";
+
+  // Step 2 will connect this button to the player area.
+}
+</script>
+
+</body>
+</html>
+```
