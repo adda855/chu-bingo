@@ -52,13 +52,13 @@ header{
 
 .current-title{
   font-size:16px;
-  margin-bottom:8px;
 }
 
 .number{
   font-size:60px;
   font-weight:bold;
   color:#ffd32a;
+  margin-top:5px;
 }
 
 .card{
@@ -82,10 +82,14 @@ header{
 
 .cell.header{
   background:#ffd32a;
-  color:#111;
 }
 
-.cell.marked{
+.cell.called{
+  background:#35d07f;
+  color:white;
+}
+
+.cell.free{
   background:#35d07f;
   color:white;
 }
@@ -110,6 +114,23 @@ button:active{
   margin-top:15px;
   min-height:24px;
   font-weight:bold;
+}
+
+.called-list{
+  margin-top:20px;
+  background:#111d42;
+  padding:15px;
+  border-radius:12px;
+}
+
+.called-list-title{
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+#calledNumbers{
+  line-height:1.8;
+  color:#ffd32a;
 }
 </style>
 </head>
@@ -138,21 +159,30 @@ button:active{
 
   <div class="message" id="message"></div>
 
+  <div class="called-list">
+    <div class="called-list-title">CALLED NUMBERS</div>
+    <div id="calledNumbers">None</div>
+  </div>
+
 </div>
 
 <script>
+
 const card = document.getElementById("bingoCard");
 const currentNumber = document.getElementById("currentNumber");
 const message = document.getElementById("message");
+const calledNumbersDisplay = document.getElementById("calledNumbers");
 
 let calledNumbers = [];
-let playerNumbers = [];
 
-function randomNumbers(min,max,count){
-  let numbers = [];
+function randomColumnNumbers(min,max,count){
 
-  while(numbers.length < count){
-    let n = Math.floor(Math.random()*(max-min+1))+min;
+  let numbers=[];
+
+  while(numbers.length<count){
+
+    let n=Math.floor(Math.random()*(max-min+1))+min;
+
     if(!numbers.includes(n)){
       numbers.push(n);
     }
@@ -163,126 +193,11 @@ function randomNumbers(min,max,count){
 
 function createCard(){
 
-  card.innerHTML = "";
+  card.innerHTML="";
 
-  const letters = ["B","I","N","G","O"];
+  const letters=["B","I","N","G","O"];
 
   letters.forEach(letter=>{
-    const div = document.createElement("div");
-    div.className = "cell header";
-    div.textContent = letter;
-    card.appendChild(div);
-  });
 
-  for(let row=0; row<5; row++){
-
-    for(let col=0; col<5; col++){
-
-      let number;
-
-      if(row === 2 && col === 2){
-        number = "FREE";
-      }else{
-
-        const min = col*15+1;
-        const max = col*15+15;
-
-        let available = randomNumbers(min,max,15);
-
-        do{
-          number = available[Math.floor(Math.random()*available.length)];
-        }while(playerNumbers.includes(number));
-
-        playerNumbers.push(number);
-      }
-
-      const cell = document.createElement("div");
-      cell.className = "cell";
-      cell.textContent = number;
-
-      if(number === "FREE"){
-        cell.classList.add("marked");
-      }
-
-      cell.onclick = function(){
-        if(number !== "FREE"){
-          cell.classList.toggle("marked");
-        }
-      };
-
-      card.appendChild(cell);
-    }
-  }
-}
-
-function callNumber(){
-
-  if(calledNumbers.length >= 75){
-    message.textContent = "All numbers have been called.";
-    return;
-  }
-
-  let number;
-
-  do{
-    number = Math.floor(Math.random()*75)+1;
-  }while(calledNumbers.includes(number));
-
-  calledNumbers.push(number);
-
-  currentNumber.textContent = number;
-
-  message.textContent = "Number " + number + " called!";
-}
-
-function checkBingo(){
-
-  const cells = document.querySelectorAll(".cell:not(.header)");
-
-  const marked = [];
-
-  cells.forEach(cell=>{
-    marked.push(
-      cell.classList.contains("marked")
-    );
-  });
-
-  let win = false;
-
-  for(let r=0;r<5;r++){
-    let rowWin = true;
-
-    for(let c=0;c<5;c++){
-      if(!marked[r*5+c]){
-        rowWin=false;
-      }
-    }
-
-    if(rowWin) win=true;
-  }
-
-  for(let c=0;c<5;c++){
-    let colWin = true;
-
-    for(let r=0;r<5;r++){
-      if(!marked[r*5+c]){
-        colWin=false;
-      }
-    }
-
-    if(colWin) win=true;
-  }
-
-  if(win){
-    message.textContent = "🎉 BINGO! You won!";
-  }else{
-    message.textContent = "No Bingo yet. Keep playing!";
-  }
-}
-
-createCard();
-</script>
-
-</body>
-</html>
+    co
 ```
