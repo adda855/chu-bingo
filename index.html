@@ -1,145 +1,409 @@
-```html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" ```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>CHU Bingo</title>
 
 <style>
-*{
-  box-sizing:border-box;
+* {
+  box-sizing: border-box;
 }
 
-body{
-  margin:0;
-  min-height:100vh;
-  font-family:Arial,sans-serif;
-  background:#0b1238;
-  color:white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background: #08112f;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.container{
-  width:92%;
-  max-width:420px;
-  background:#11194a;
-  border-radius:20px;
-  padding:30px 22px;
-  text-align:center;
-  box-shadow:0 10px 35px rgba(0,0,0,0.4);
+.app {
+  width: 92%;
+  max-width: 420px;
+  background: #111c4d;
+  border-radius: 24px;
+  padding: 28px 22px;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0,0,0,.45);
 }
 
-h1{
-  margin:0 0 10px;
-  font-size:36px;
-  color:#ffd32a;
+.logo {
+  font-size: 42px;
 }
 
-.subtitle{
-  margin-bottom:30px;
-  color:#d9dcff;
-  font-size:16px;
+h1 {
+  margin: 5px 0;
+  color: #ffd32a;
+  font-size: 34px;
 }
 
-label{
-  display:block;
-  text-align:left;
-  margin-bottom:8px;
-  font-weight:bold;
+.subtitle {
+  color: #bfc8f5;
+  margin: 8px 0 25px;
 }
 
-input{
-  width:100%;
-  padding:15px;
-  border:none;
-  border-radius:12px;
-  font-size:16px;
-  outline:none;
-  margin-bottom:18px;
+input {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  margin-bottom: 15px;
+  outline: none;
 }
 
-button{
-  width:100%;
-  padding:15px;
-  border:none;
-  border-radius:12px;
-  background:#ffd32a;
-  color:#11194a;
-  font-size:18px;
-  font-weight:bold;
-  cursor:pointer;
+button {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 12px;
+  background: #ffd32a;
+  color: #10183f;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 8px;
 }
 
-button:active{
-  transform:scale(0.98);
+.secondary {
+  background: #29345f;
+  color: white;
 }
 
-.message{
-  margin-top:18px;
-  min-height:24px;
-  color:#ffd32a;
-  font-weight:bold;
+.hidden {
+  display: none;
 }
 
-.footer{
-  margin-top:30px;
-  font-size:13px;
-  color:#9fa7d8;
+.player-card {
+  background: #19265c;
+  border-radius: 16px;
+  padding: 18px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.player-row {
+  margin: 9px 0;
+}
+
+.label {
+  color: #9da9df;
+  font-size: 13px;
+}
+
+.value {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.balance {
+  color: #ffd32a;
+  font-size: 25px;
+}
+
+.message {
+  margin-top: 15px;
+  color: #ffd32a;
+  min-height: 22px;
+}
+
+.footer {
+  margin-top: 25px;
+  color: #7f8abe;
+  font-size: 12px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="app">
 
-  <h1>🎱 CHU BINGO</h1>
+  <!-- REGISTRATION -->
+  <div id="registerScreen">
 
-  <div class="subtitle">
-    Welcome to CHU Bingo
+    <div class="logo">🎱</div>
+
+    <h1>CHU BINGO</h1>
+
+    <div class="subtitle">
+      Create your player
+    </div>
+
+    <input
+      id="playerName"
+      type="text"
+      placeholder="Enter your name"
+      maxlength="30"
+    >
+
+    <button onclick="registerPlayer()">
+      START
+    </button>
+
+    <div id="registerMessage" class="message"></div>
+
   </div>
 
-  <label for="playerName">Player name</label>
+
+  <!-- PLAYER AREA -->
+  <div id="playerScreen" class="hidden">
+
+    <div class="logo">🎱</div>
+
+    <h1>CHU BINGO</h1>
+
+    <div class="subtitle">
+      Player Dashboard
+    </div>
+
+    <div class="player-card">
+
+      <div class="player-row">
+        <div class="label">Player</div>
+        <div class="value" id="showName"></div>
+      </div>
+
+      <div class="player-row">
+        <div class="label">Player ID</div>
+        <div class="value" id="showID"></div>
+      </div>
+
+      <div class="player-row">
+        <div class="label">Demo Balance</div>
+        <div class="balance">500 ETB</div>
+      </div>
+
+    </div>
+
+    <button onclick="getCard()">
+      🎟️ GET BINGO CARD
+    </button>
+
+    <button class="secondary" onclick="logout()">
+      LOGOUT
+    </button>
+
+    <div id="playerMessage" class="message"></div>
+
+  </div>
+
+
+  <div class="footer">
+    CHU Bingo
+  </div>
+
+</div>
+
+
+<script>
+
+function registerPlayer() {
+
+  const nameInput = document.getElementById("playerName");
+  const name = nameInput.value.trim();
+
+  if (name === "") {
+    document.getElementById("registerMessage").textContent =
+      "Please enter your name.";
+    return;
+  }
+
+  const playerID =
+    "CHU" + Math.floor(100000 + Math.random() * 900000);
+
+  localStorage.setItem("chuName", name);
+  localStorage.setItem("chuID", playerID);
+
+  showPlayer(name, playerID);
+}
+
+
+function showPlayer(name, id) {
+
+  document.getElementById("registerScreen")
+    .classList.add("hidden");
+
+  document.getElementById("playerScreen")
+    .classList.remove("hidden");
+
+  document.getElementById("showName").textContent = name;
+  document.getElementById("showID").textContent = id;
+}
+
+
+function getCard() {
+
+  document.getElementById("playerMessage").textContent =
+    "Bingo card will be created in Step 3 🎟️";
+}
+
+
+function logout() {
+
+  localStorage.removeItem("chuName");
+  localStorage.removeItem("chuID");
+
+  document.getElementById("playerScreen")
+    .classList.add("hidden");
+
+  document.getElementById("registerScreen")
+    .classList.remove("hidden");
+
+  document.getElementById("playerName").value = "";
+}
+
+
+window.onload = function() {
+
+  const name = localStorage.getItem("chuName");
+  const id = localStorage.getItem("chuID");
+
+  if (name && id) {
+    showPlayer(name, id);
+  }
+
+};
+
+</script>
+
+</body>
+</html>
+```
+, initial-scale=1.0">
+<title>CHU Bingo</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background: #08112f;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app {
+  width: 92%;
+  max-width: 420px;
+  background: #111c4d;
+  border-radius: 24px;
+  padding: 30px 22px;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+}
+
+.logo {
+  font-size: 42px;
+  margin-bottom: 5px;
+}
+
+h1 {
+  margin: 0;
+  color: #ffd32a;
+  font-size: 36px;
+}
+
+.subtitle {
+  color: #bfc8f5;
+  margin: 10px 0 30px;
+}
+
+input {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  outline: none;
+  margin-bottom: 15px;
+}
+
+button {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  background: #ffd32a;
+  color: #10183f;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#message {
+  margin-top: 18px;
+  color: #ffd32a;
+  min-height: 22px;
+}
+
+.footer {
+  margin-top: 28px;
+  color: #7f8abe;
+  font-size: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="logo">🎱</div>
+
+  <h1>CHU BINGO</h1>
+
+  <div class="subtitle">
+    Welcome to the new CHU Bingo
+  </div>
 
   <input
-    type="text"
     id="playerName"
+    type="text"
     placeholder="Enter your name"
     maxlength="30"
   >
 
-  <button onclick="continueGame()">
-    Continue
+  <button onclick="startGame()">
+    START
   </button>
 
-  <div class="message" id="message"></div>
+  <div id="message"></div>
 
   <div class="footer">
-    CHU Bingo • Step 1
+    CHU Bingo
   </div>
 
 </div>
 
 <script>
-function continueGame(){
+function startGame() {
 
   const name = document.getElementById("playerName").value.trim();
   const message = document.getElementById("message");
 
-  if(name === ""){
+  if (name === "") {
     message.textContent = "Please enter your name.";
     return;
   }
 
-  localStorage.setItem("chuPlayerName", name);
-
   message.textContent = "Welcome, " + name + "!";
-
-  // Step 2 will connect this button to the player area.
 }
 </script>
 
