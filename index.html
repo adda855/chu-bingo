@@ -1,15 +1,12 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>CHU Bingo</title>
 
 <style>
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
   margin:0;
@@ -22,7 +19,7 @@ body{
 header{
   background:#11194a;
   padding:18px;
-  font-size:28px;
+  font-size:30px;
   font-weight:bold;
 }
 
@@ -32,61 +29,49 @@ header{
   padding:20px;
 }
 
-.player{
+.player,.history{
   background:#171f59;
-  padding:15px;
-  border-radius:12px;
+  padding:18px;
+  border-radius:15px;
   margin-bottom:20px;
 }
 
 input{
   width:100%;
-  padding:13px;
-  border:0;
-  border-radius:8px;
-  margin-top:10px;
-  font-size:16px;
-}
-
-button{
-  width:100%;
   padding:15px;
-  margin-top:15px;
+  margin-top:12px;
   border:0;
   border-radius:10px;
-  background:#ffd32a;
-  color:#111;
   font-size:18px;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-button:active{
-  transform:scale(.98);
 }
 
 .called-box{
   background:#2912a8;
-  padding:20px;
-  border-radius:15px;
+  padding:25px;
+  border-radius:18px;
   margin:20px 0;
 }
 
 .called-title{
-  font-size:16px;
+  font-size:17px;
 }
 
 .called-number{
-  font-size:55px;
+  font-size:58px;
   font-weight:bold;
   margin-top:8px;
 }
 
-.history{
-  background:#171f59;
-  padding:15px;
+button{
+  width:100%;
+  padding:17px;
+  margin-top:15px;
+  border:0;
   border-radius:12px;
-  margin-bottom:20px;
+  background:#ffd32a;
+  color:#111;
+  font-size:19px;
+  font-weight:bold;
 }
 
 .history-list{
@@ -94,13 +79,13 @@ button:active{
   flex-wrap:wrap;
   justify-content:center;
   gap:7px;
-  margin-top:10px;
+  margin-top:12px;
 }
 
 .history-list span{
   background:#333b78;
-  padding:7px 10px;
-  border-radius:6px;
+  padding:8px 11px;
+  border-radius:7px;
 }
 
 .bingo-card{
@@ -119,7 +104,7 @@ button:active{
   justify-content:center;
   font-size:18px;
   font-weight:bold;
-  border-radius:5px;
+  border-radius:6px;
 }
 
 .head{
@@ -137,9 +122,46 @@ button:active{
 }
 
 .status{
-  margin-top:15px;
+  margin-top:18px;
   font-size:20px;
   font-weight:bold;
+}
+
+/* WIN SCREEN */
+.win-screen{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:#0b1238;
+  z-index:1000;
+  align-items:center;
+  justify-content:center;
+  padding:25px;
+}
+
+.win-box{
+  width:100%;
+  max-width:430px;
+  background:#171f59;
+  padding:35px 25px;
+  border-radius:25px;
+  box-shadow:0 0 30px rgba(0,0,0,.5);
+}
+
+.win-title{
+  font-size:60px;
+  font-weight:bold;
+  margin-bottom:15px;
+}
+
+.win-name{
+  font-size:27px;
+  margin:15px 0;
+}
+
+.win-calls{
+  font-size:19px;
+  margin-bottom:20px;
 }
 </style>
 </head>
@@ -160,7 +182,9 @@ button:active{
     <div id="calledNumber" class="called-number">---</div>
   </div>
 
-  <button onclick="callNumber()">📢 CALL NUMBER</button>
+  <button id="callButton" onclick="callNumber()">
+    📢 CALL NUMBER
+  </button>
 
   <div class="history">
     <div>Called Numbers</div>
@@ -179,31 +203,59 @@ button:active{
 
 </div>
 
+<!-- WIN SCREEN -->
+
+<div id="winScreen" class="win-screen">
+
+  <div class="win-box">
+
+    <div class="win-title">🎉 BINGO!</div>
+
+    <div id="winName" class="win-name">
+      Congratulations!
+    </div>
+
+    <div id="winCalls" class="win-calls">
+      You won the game!
+    </div>
+
+    <button onclick="playAgain()">
+      🔄 PLAY AGAIN
+    </button>
+
+  </div>
+
+</div>
+
 <script>
 
-let calledNumbers = [];
-let cardNumbers = [];
+let calledNumbers=[];
+let cardNumbers=[];
+let gameWon=false;
 
-/* Generate random number */
+/* RANDOM NUMBER */
+
 function randomNumber(min,max){
   return Math.floor(Math.random()*(max-min+1))+min;
 }
 
-/* Create Bingo card */
+/* NEW CARD */
+
 function newCard(){
 
-  calledNumbers = [];
+  calledNumbers=[];
+  cardNumbers=[];
+  gameWon=false;
 
-  document.getElementById("calledNumber").textContent = "---";
-
-  document.getElementById("historyList").innerHTML =
+  document.getElementById("calledNumber").textContent="---";
+  document.getElementById("historyList").innerHTML=
     "No numbers called yet";
+  document.getElementById("status").textContent="";
 
-  document.getElementById("status").textContent = "";
+  document.getElementById("callButton").disabled=false;
+  document.getElementById("callButton").style.opacity="1";
 
-  cardNumbers = [];
-
-  let ranges = [
+  let ranges=[
     [1,15],
     [16,30],
     [31,45],
@@ -211,7 +263,7 @@ function newCard(){
     [61,75]
   ];
 
-  for(let column=0; column<5; column++){
+  for(let column=0;column<5;column++){
 
     let numbers=[];
 
@@ -231,7 +283,6 @@ function newCard(){
   }
 
   let card=document.getElementById("bingoCard");
-
   card.innerHTML="";
 
   let letters=["B","I","N","G","O"];
@@ -241,7 +292,6 @@ function newCard(){
     let cell=document.createElement("div");
 
     cell.className="cell head";
-
     cell.textContent=letters[i];
 
     card.appendChild(cell);
@@ -252,19 +302,16 @@ function newCard(){
     for(let column=0;column<5;column++){
 
       let cell=document.createElement("div");
-
       cell.className="cell";
 
       if(row===2 && column===2){
 
         cell.textContent="FREE";
-
         cell.classList.add("free");
 
       }else{
 
         cell.textContent=cardNumbers[column][row];
-
         cell.dataset.number=cardNumbers[column][row];
 
       }
@@ -274,13 +321,15 @@ function newCard(){
   }
 }
 
-/* Call a number */
+/* CALL NUMBER */
+
 function callNumber(){
+
+  if(gameWon)return;
 
   if(calledNumbers.length>=75){
 
     alert("All 75 numbers have been called!");
-
     return;
   }
 
@@ -296,25 +345,16 @@ function callNumber(){
 
   let letter;
 
-  if(number<=15){
-    letter="B";
-  }
-  else if(number<=30){
-    letter="I";
-  }
-  else if(number<=45){
-    letter="N";
-  }
-  else if(number<=60){
-    letter="G";
-  }
-  else{
-    letter="O";
-  }
+  if(number<=15)letter="B";
+  else if(number<=30)letter="I";
+  else if(number<=45)letter="N";
+  else if(number<=60)letter="G";
+  else letter="O";
 
   let fullNumber=letter+"-"+number;
 
-  document.getElementById("calledNumber").textContent=fullNumber;
+  document.getElementById("calledNumber").textContent=
+    fullNumber;
 
   updateHistory();
 
@@ -323,7 +363,8 @@ function callNumber(){
   checkBingo();
 }
 
-/* Update history */
+/* HISTORY */
+
 function updateHistory(){
 
   let history=document.getElementById("historyList");
@@ -334,10 +375,10 @@ function updateHistory(){
 
     let letter;
 
-    if(number<=15) letter="B";
-    else if(number<=30) letter="I";
-    else if(number<=45) letter="N";
-    else if(number<=60) letter="G";
+    if(number<=15)letter="B";
+    else if(number<=30)letter="I";
+    else if(number<=45)letter="N";
+    else if(number<=60)letter="G";
     else letter="O";
 
     let item=document.createElement("span");
@@ -345,31 +386,28 @@ function updateHistory(){
     item.textContent=letter+"-"+number;
 
     history.appendChild(item);
-
   });
 }
 
-/* Mark matching card number */
+/* MARK NUMBER */
+
 function markNumber(number){
 
-  let cells=document.querySelectorAll(".cell");
-
-  cells.forEach(function(cell){
+  document.querySelectorAll(".cell").forEach(function(cell){
 
     if(cell.dataset.number==number){
 
       cell.classList.add("marked");
 
     }
-
   });
 }
 
-/* Check Bingo */
+/* CHECK BINGO */
+
 function checkBingo(){
 
   let cells=document.querySelectorAll(".cell");
-
   let grid=[];
 
   for(let row=0;row<5;row++){
@@ -378,26 +416,27 @@ function checkBingo(){
 
     for(let column=0;column<5;column++){
 
-      let index=6 + row*5 + column;
-
+      let index=5+(row*5)+column;
       let cell=cells[index];
 
-      grid[row][column] =
+      grid[row][column]=
         cell.classList.contains("marked") ||
         (row===2 && column===2);
-
     }
   }
+
+  /* ROWS */
 
   for(let row=0;row<5;row++){
 
     if(grid[row].every(Boolean)){
 
       bingoWon();
-
       return;
     }
   }
+
+  /* COLUMNS */
 
   for(let column=0;column<5;column++){
 
@@ -406,20 +445,18 @@ function checkBingo(){
     for(let row=0;row<5;row++){
 
       if(!grid[row][column]){
-
         win=false;
-
       }
-
     }
 
     if(win){
 
       bingoWon();
-
       return;
     }
   }
+
+  /* DIAGONALS */
 
   let diagonal1=true;
   let diagonal2=true;
@@ -433,35 +470,60 @@ function checkBingo(){
     if(!grid[i][4-i]){
       diagonal2=false;
     }
-
   }
 
   if(diagonal1 || diagonal2){
 
     bingoWon();
-
   }
 }
 
-/* Bingo winner */
+/* WIN */
+
 function bingoWon(){
 
-  let name=document.getElementById("playerName").value;
+  if(gameWon)return;
 
-  if(name.trim()===""){
+  gameWon=true;
+
+  let name=
+    document.getElementById("playerName").value.trim();
+
+  if(name===""){
     name="Player";
   }
 
-  document.getElementById("status").textContent =
-    "🎉 BINGO! Congratulations "+name+"!";
+  document.getElementById("status").textContent=
+    "🎉 BINGO!";
 
+  document.getElementById("winName").textContent=
+    "Congratulations, "+name+"!";
+
+  document.getElementById("winCalls").textContent=
+    "You won after "+calledNumbers.length+" calls.";
+
+  document.getElementById("winScreen").style.display=
+    "flex";
+
+  document.getElementById("callButton").disabled=true;
+  document.getElementById("callButton").style.opacity=".5";
 }
 
-/* Start with a card */
+/* PLAY AGAIN */
+
+function playAgain(){
+
+  document.getElementById("winScreen").style.display=
+    "none";
+
+  newCard();
+}
+
+/* START GAME */
+
 newCard();
 
 </script>
 
 </body>
 </html>
-```
