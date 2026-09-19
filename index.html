@@ -165,7 +165,31 @@ button{
 }
 </style>
 </head>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
+  const firebaseConfig = {
+    apiKey: "AIzaSyB9FjUNXyLDnafhYl7-voTNEmYR6ea4JoU",
+    authDomain: "eluzabingo.firebaseapp.com",
+    databaseURL: "https://eluzabingo-default-rtdb.firebaseio.com",
+    projectId: "eluzabingo",
+    storageBucket: "eluzabingo.firebasestorage.app",
+    messagingSenderId: "1067524008089",
+    appId: "1:1067524008089:web:0ef524345249d92d1df008",
+    measurementId: "G-FH21LGR7ZH"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  console.log("CHU Bingo Firebase connected");
+</script>
 <body>
 
 <header>🎱 CHU BINGO</header>
