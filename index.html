@@ -377,42 +377,63 @@ function callNumber(){
 
   let fullNumber=letter+"-"+number;
 
-  document.getElementById("calledNumber").textContent=
-    fullNumber;
+/* CALL NUMBER */
 
-  updateHistory();
+let calledNumbers = [];
+let currentNumber = null;
 
-  markNumber(number);
+function callNumber(){
 
-  checkBingo();
+    if(calledNumbers.length >= 75){
+        alert("All numbers have been called!");
+        return;
+    }
+
+    let number;
+
+    do{
+        number = Math.floor(Math.random() * 75) + 1;
+    }while(calledNumbers.includes(number));
+
+    calledNumbers.push(number);
+    currentNumber = number;
+
+    /* Show the number */
+    let display = document.getElementById("calledNumber");
+
+    if(display){
+        display.textContent = number;
+    }
+
+    /* Update status */
+    let status = document.getElementById("status");
+
+    if(status){
+        status.textContent = "Called number: " + number;
+    }
+
+    /* Add to history */
+    let history = document.getElementById("history");
+
+    if(history){
+        let item = document.createElement("div");
+        item.textContent = number;
+        history.appendChild(item);
+    }
+
+    /* Mark number on card */
+    markNumber(number);
+
+    /* Check Bingo */
+    checkBingo();
 }
 
-/* HISTORY */
+/* Make the button work */
+let callButton = document.getElementById("callButton");
 
-function updateHistory(){
-
-  let history=document.getElementById("historyList");
-
-  history.innerHTML="";
-
-  calledNumbers.slice().reverse().forEach(function(number){
-
-    let letter;
-
-    if(number<=15)letter="B";
-    else if(number<=30)letter="I";
-    else if(number<=45)letter="N";
-    else if(number<=60)letter="G";
-    else letter="O";
-
-    let item=document.createElement("span");
-
-    item.textContent=letter+"-"+number;
-
-    history.appendChild(item);
-  });
+if(callButton){
+    callButton.onclick = callNumber;
 }
-
 /* MARK NUMBER */
 
 function markNumber(number){
