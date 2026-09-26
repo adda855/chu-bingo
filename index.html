@@ -428,15 +428,14 @@ function callNumber(){
     checkBingo();
 }
 
-/* Make the button work */
-let callButton = document.getElementById("callButton");
+/* Make the button work *
+let callButton = document.querySelector("button");
 
-if(callButton){
-    callButton.onclick = callNumber;
-}
-/* MARK NUMBER */
-
-function markNumber(number){
+document.querySelectorAll("button").forEach(function(button) {
+    if (button.innerText.includes("CALL NUMBER")) {
+        button.onclick = callNumber;
+    }
+});
 
   document.querySelectorAll(".cell").forEach(function(cell){
 
