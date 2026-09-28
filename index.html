@@ -255,7 +255,7 @@ button{
 
 let calledNumbers = [];
 let cardNumbers = [];
-let gameWon = false;
+let gameWon = true;
 
 
 /* RANDOM NUMBER */
@@ -293,10 +293,15 @@ function callNumber() {
     document.getElementById("status").textContent =
         "Number " + number + " was called!";
 
-    markCalledCell(number);
+    markNumber(number);
 
-    checkWin();
+if (checkWin()) {
+    gameOver = true;
+    // show "You Won" / Play Again
+    return;
 }
+
+callNextNumber();
 
 
 /* MARK NUMBER ON CARD */
