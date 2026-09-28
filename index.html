@@ -295,13 +295,10 @@ function callNumber() {
 
     markNumber(number);
 
-if (checkWin()) {
-    gameOver = true;
-    // show "You Won" / Play Again
-    return;
-}
+ (checkWin)
+    
+  }
 
-callNextNumber();
 
 
 /* MARK NUMBER ON CARD */
@@ -318,7 +315,7 @@ function markCalledCell(number) {
             cell.style.background = "#ffd32a";
             cell.style.color = "#000";
             cell.style.fontWeight = "bold";
-        }
+        } 
 
     });
 }
