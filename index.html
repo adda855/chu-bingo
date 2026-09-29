@@ -285,18 +285,22 @@ function callNumber() {
 
     calledNumbers.push(number);
 
-    document.getElementById("calledNumber").textContent = number;
+document.getElementById("calledNumber").textContent = number;
 
-    document.getElementById("historyList").textContent =
-        calledNumbers.join(" • ");
+document.getElementById("historyList").textContent =
+    calledNumbers.join(" • ");
 
+document.getElementById("status").textContent =
+    "Number " + number + " was called";
+
+markCalledCell(number);
+
+if (checkWin()) {
+    gameOver = true;
     document.getElementById("status").textContent =
-        "Number " + number + " was called!";
-
-    markNumber(number);
-
- (checkWin)    
-  }
+        "🎉 BINGO! GAME OVER!";
+    return;
+}
 /* MARK NUMBER ON CARD */
 function markCalledCell(number) {
 
