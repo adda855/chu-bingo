@@ -425,105 +425,105 @@ function newCard() {
         }
     }
 }
-
-
-/* CHECK BINGO */
 function checkWin() {
- let cells = document.querySelectorAll("#bingoCard .cell");
 
-    if (cells.length < 30) {
-        return;
+    const cells = Array.from(
+        document.querySelectorAll("#bingoCard .cell")
+    );
+
+    if (cells.length < 25) {
+        return false;
     }
 
+    // Make the center FREE space count
+    const center = cells[12];
 
-    /* GET PLAYABLE CELLS */
+    if (
+        center &&
+        !center.classList.contains("marked")
+    ) {
+        const centerText = center.textContent.trim().toUpperCase();
 
-    let board = [];
-
-    for (let row = 0; row < 5; row++) {
-
-        board[row] = [];
-
-        for (let column = 0; column < 5; column++) {
-
-            let index = 6 + (row * 5) + column;
-
-            board[row][column] = cells[index];
-
+        if (
+            centerText === "FREE" ||
+            centerText === ""
+        ) {
+            center.classList.add("marked");
         }
     }
 
-
-    /* CHECK ROWS */
-
+    // CHECK ROWS
     for (let row = 0; row < 5; row++) {
 
         let win = true;
 
         for (let column = 0; column < 5; column++) {
-
-            if (
-                !board[row][column].classList.contains("called")
-            ) {
-
+            if (!cells[row * 5 + column].classList.contains("marked")) {
                 win = false;
-
+                break;
             }
-
         }
 
         if (win) {
+            window.gameWon = true;
             showWin();
-            return;
+            return true;
         }
     }
 
-
-    /* CHECK COLUMNS */
-
+    // CHECK COLUMNS
     for (let column = 0; column < 5; column++) {
 
         let win = true;
 
         for (let row = 0; row < 5; row++) {
-
-            if (
-                !board[row][column].classList.contains("called")
-            ) {
-
+            if (!cells[row * 5 + column].classList.contains("marked")) {
                 win = false;
-
+                break;
             }
-
         }
 
         if (win) {
+            window.gameWon = true;
             showWin();
-            return;
+            return true;
         }
     }
 
-
-    /* CHECK DIAGONAL */
-
+    // CHECK FIRST DIAGONAL
     let diagonal1 = true;
 
     for (let i = 0; i < 5; i++) {
-
-        if (
-            !board[i][i].classList.contains("called")
-        ) {
-
+        if (!cells[i * 5 + i].classList.contains("marked")) {
             diagonal1 = false;
-
+            break;
         }
-
     }
 
     if (diagonal1) {
+        window.gameWon = true;
         showWin();
-        return;
+        return true;
     }
+
+    // CHECK SECOND DIAGONAL
+    let diagonal2 = true;
+
+    for (let i = 0; i < 5; i++) {
+        if (!cells[i * 5 + (4 - i)].classList.contains("marked")) {
+            diagonal2 = false;
+            break;
+        }
+    }
+
+    if (diagonal2) {
+        window.gameWon = true;
+        showWin();
+        return true;
+    }
+
+    return false;
+}
 
 
     /* CHECK SECOND DIAGONAL */
