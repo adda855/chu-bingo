@@ -304,7 +304,6 @@ function markNumber(number) {
         }
     });
 }
-
 function generateBingoCard() {
     const card = document.getElementById("bingoCard");
 
@@ -312,7 +311,7 @@ function generateBingoCard() {
 
     card.innerHTML = "";
 
-    const columns = [
+    const ranges = [
         [1, 15],
         [16, 30],
         [31, 45],
@@ -320,33 +319,55 @@ function generateBingoCard() {
         [61, 75]
     ];
 
-    for (let col = 0; col < 5; col++) {
-        let numbers = [];
+    window.cardNumbers = [];
 
-        while (numbers.length < 5) {
-            let n = Math.floor(
-                Math.random() * (columns[col][1] - columns[col][0] + 1)
-            ) + columns[col][0];
+    for (let row = 0; row < 5; row++) {
+        for (let column = 0; column < 5; column++) {
 
-            if (!numbers.includes(n)) {
-                numbers.push(n);
-            }
-        }
-
-        for (let row = 0; row < 5; row++) {
             const cell = document.createElement("div");
             cell.className = "cell";
 
-            if (row === 2 && col === 2) {
+            // FREE CENTER
+            if (row === 2 && column === 2) {
                 cell.textContent = "FREE";
                 cell.classList.add("free");
+                cell.dataset.number = "0";
+
             } else {
-                cell.textContent = numbers[row];
-                cell.dataset.number = numbers[row];
+
+                let number;
+
+                do {
+                    number =
+                        Math.floor(
+                            Math.random() *
+                            (ranges[column][1] - ranges[column][0] + 1)
+                        ) + ranges[column][0];
+
+                } while (window.cardNumbers.includes(number));
+
+                window.cardNumbers.push(number);
+
+                cell.textContent = number;
+                cell.dataset.number = number;
+
+                // CLICK CARD NUMBER
+                cell.onclick = function () {
+
+                    if (calledNumbers.includes(number)) {
+                        cell.classList.toggle("called");
+                        checkWin();
+                    } else {
+                        document.getElementById("status").textContent =
+                            "Wait! Number " + number + " has not been called.";
+                    }
+                };
             }
 
             card.appendChild(cell);
         }
+    }
+}
 
     /* NUMBER RANGES */
     let ranges = [
@@ -428,7 +449,9 @@ function generateBingoCard() {
             }
 
             card.appendChild(cell);
-        
+  }
+    }
+  }
   /*CHECK BINGO*/
 function checkWin() {
 
