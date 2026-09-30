@@ -293,21 +293,15 @@ function callNumber() {
 }
   
 /* MARK NUMBER ON CARD */
-function markCalledCell(number) {
-
-    let cells = document.querySelectorAll("Cell");
+function markNumber(number) {
+    const cells = document.querySelectorAll("#bingoCard .cell");
 
     cells.forEach(function(cell) {
+        const value = parseInt(cell.textContent.trim());
 
-        if (Number(cell.dataset.number) === number) {
-
-            cell.classList.add("called");
-
-            cell.style.background = "#ffd32a";
-            cell.style.color = "#000";
-            cell.style.fontWeight = "bold";
-        } 
-
+        if (value === number) {
+            cell.classList.add("marked");
+        }
     });
 }
 
