@@ -305,42 +305,50 @@ function markNumber(number) {
     });
 }
 
+function generateBingoCard() {
+    const card = document.getElementById("bingoCard");
 
-/* CREATE NEW CARD */
-function newCard() {
-
-    calledNumbers = [];
-    cardNumbers = [];
-    gameWon = false;
-
-    document.getElementById("calledNumber").textContent = "-";
-
-    document.getElementById("historyList").textContent =
-        "No numbers called yet";
-
-    document.getElementById("status").textContent =
-        "New Bingo card ready!";
-
-    document.getElementById("winScreen").style.display = "none";
-
-    let card = document.getElementById("bingoCard");
+    if (!card) return;
 
     card.innerHTML = "";
 
-    let letters = ["B", "I", "N", "G", "O"];
+    const columns = [
+        [1, 15],
+        [16, 30],
+        [31, 45],
+        [46, 60],
+        [61, 75]
+    ];
 
-    /* HEADERS */
-    for (let i = 0; i < 5; i++) {
+    for (let col = 0; col < 5; col++) {
+        let numbers = [];
 
-        let cell = document.createElement("div");
+        while (numbers.length < 5) {
+            let n = Math.floor(
+                Math.random() * (columns[col][1] - columns[col][0] + 1)
+            ) + columns[col][0];
 
-        cell.className = "cell head";
+            if (!numbers.includes(n)) {
+                numbers.push(n);
+            }
+        }
 
-        cell.textContent = letters[i];
+        for (let row = 0; row < 5; row++) {
+            const cell = document.createElement("div");
+            cell.className = "cell";
 
-        card.appendChild(cell);
+            if (row === 2 && col === 2) {
+                cell.textContent = "FREE";
+                cell.classList.add("free");
+            } else {
+                cell.textContent = numbers[row];
+                cell.dataset.number = numbers[row];
+            }
+
+            card.appendChild(cell);
+        }
     }
-
+}
 
     /* NUMBER RANGES */
     let ranges = [
