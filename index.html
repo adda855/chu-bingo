@@ -262,14 +262,8 @@ let gameWon = false;
 function randomNumber(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-
-
-/* CALL NUMBER */
+/* CALL NUMBER ON CARD */
 function callNumber() {
-
-    if (gameWon) {
-        return;
-    }
 
     if (calledNumbers.length >= 75) {
         document.getElementById("status").textContent =
@@ -295,8 +289,9 @@ function callNumber() {
 
     markNumber(number);
 
- (checkWin)    
-  }
+    checkWin();
+}
+  
 /* MARK NUMBER ON CARD */
 function markCalledCell(number) {
 
