@@ -310,7 +310,26 @@ function generateBingoCard() {
     if (!card) return;
 
     card.innerHTML = "";
+// CREATE CARD NUMBER
+let cardNumber = "CHU-" + Math.floor(100000 + Math.random() * 900000);
 
+let oldCardNumber = document.getElementById("cardNumber");
+
+if (oldCardNumber) {
+    oldCardNumber.remove();
+}
+
+let cardNumberDisplay = document.createElement("div");
+cardNumberDisplay.id = "cardNumber";
+cardNumberDisplay.textContent = "Card Number: " + cardNumber;
+
+cardNumberDisplay.style.textAlign = "center";
+cardNumberDisplay.style.fontSize = "20px";
+cardNumberDisplay.style.fontWeight = "bold";
+cardNumberDisplay.style.margin = "10px";
+cardNumberDisplay.style.padding = "8px";
+
+card.parentNode.insertBefore(cardNumberDisplay, card);
     const ranges = [
         [1, 15],
         [16, 30],
