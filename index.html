@@ -308,16 +308,9 @@ function generateBingoCard() {
     const card = document.getElementById("bingoCard");
 
     if (!card) return;
-
-    card.innerHTML = "";
+card.innerHTML = "";
 // CREATE CARD NUMBER
 let cardNumber = "CHU-" + Math.floor(100000 + Math.random() * 900000);
-
-let oldCardNumber = document.getElementById("cardNumber");
-
-if (oldCardNumber) {
-    oldCardNumber.remove();
-}
 
 let cardNumberDisplay = document.createElement("div");
 cardNumberDisplay.id = "cardNumber";
@@ -329,7 +322,8 @@ cardNumberDisplay.style.fontWeight = "bold";
 cardNumberDisplay.style.margin = "10px";
 cardNumberDisplay.style.padding = "8px";
 
-card.parentNode.insertBefore(cardNumberDisplay, card);
+card.insertAdjacentElement("beforebegin", cardNumberDisplay);
+// CREATE CARD NUMBER
     const ranges = [
         [1, 15],
         [16, 30],
