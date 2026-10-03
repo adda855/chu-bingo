@@ -683,5 +683,33 @@ document.addEventListener("click", function(e) {
   const db = getFirestore(app);
 
   console.log("CHU Bingo Firebase connected");
+  // ===== CHU BINGO CARD NUMBER =====
+function addCardNumbers() {
+    const cards = document.querySelectorAll("#bingoCard, #bingocard, .bingo-card");
+
+    cards.forEach(function(card) {
+        if (card.querySelector(".chu-card-number")) return;
+
+        const number = Math.floor(100000 + Math.random() * 900000);
+
+        const box = document.createElement("div");
+        box.className = "chu-card-number";
+        box.textContent = "CARD NUMBER: " + number;
+
+        box.style.display = "block";
+        box.style.width = "100%";
+        box.style.textAlign = "center";
+        box.style.fontSize = "20px";
+        box.style.fontWeight = "bold";
+        box.style.margin = "10px 0";
+        box.style.padding = "5px";
+
+        card.insertBefore(box, card.firstChild);
+    });
+}
+
+setTimeout(addCardNumbers, 500);
+setTimeout(addCardNumbers, 1500);
+setTimeout(addCardNumbers, 3000);
 </script>
 </html>
