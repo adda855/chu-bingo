@@ -305,14 +305,18 @@ function markNumber(number) {
     });
 }
 function generateBingoCard() {
-    const cardNumber = Math.floor(100000 + Math.random() * 900000);
+    // CARD NUMBER
+const cardNumber = Math.floor(100000 + Math.random() * 900000);
 
-const cardNumberDisplay = document.createElement("div");
-cardNumberDisplay.textContent = "Card Number: " + cardNumber;
-cardNumberDisplay.style.textAlign = "center";
-cardNumberDisplay.style.fontWeight = "bold";
-cardNumberDisplay.style.fontSize = "18px";
-cardNumberDisplay.style.marginBottom = "10px";
+const numberBox = document.createElement("div");
+numberBox.innerHTML = "CARD NUMBER: " + cardNumber;
+numberBox.style.textAlign = "center";
+numberBox.style.fontSize = "20px";
+numberBox.style.fontWeight = "bold";
+numberBox.style.margin = "10px";
+numberBox.style.display = "block";
+
+card.appendChild(numberBox);
 // CREATE CARD NUMBER
     const ranges = [
         [1, 15],
