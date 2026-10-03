@@ -305,24 +305,14 @@ function markNumber(number) {
     });
 }
 function generateBingoCard() {
-    const card = document.getElementById("bingoCard");
+    const cardNumber = Math.floor(100000 + Math.random() * 900000);
 
-    if (!card) return;
-card.innerHTML = "";
-// CREATE CARD NUMBER
-let cardNumber = "CHU-" + Math.floor(100000 + Math.random() * 900000);
-
-let cardNumberDisplay = document.createElement("div");
-cardNumberDisplay.id = "cardNumber";
+const cardNumberDisplay = document.createElement("div");
 cardNumberDisplay.textContent = "Card Number: " + cardNumber;
-
 cardNumberDisplay.style.textAlign = "center";
-cardNumberDisplay.style.fontSize = "20px";
 cardNumberDisplay.style.fontWeight = "bold";
-cardNumberDisplay.style.margin = "10px";
-cardNumberDisplay.style.padding = "8px";
-
-card.insertAdjacentElement("beforebegin", cardNumberDisplay);
+cardNumberDisplay.style.fontSize = "18px";
+cardNumberDisplay.style.marginBottom = "10px";
 // CREATE CARD NUMBER
     const ranges = [
         [1, 15],
