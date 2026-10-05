@@ -314,21 +314,25 @@ function markNumber(number) {
         }
     });
 }
-generateBingoCard() {
-    // CARD NUMBER
-const cardNumber = Math.floor(100000 + Math.random() * 900000);
+```javascript
+function generateBingoCard() {
+    const card = document.getElementById("bingoCard");
+    if (!card) return;
 
-const numberBox = document.createElement("div");
-numberBox.innerHTML = "CARD NUMBER: " + cardNumber;
-numberBox.style.textAlign = "center";
-numberBox.style.fontSize = "20px";
-numberBox.style.fontWeight = "bold";
-numberBox.style.margin = "10px";
-numberBox.style.display = "block";
+    card.innerHTML = "";
 
-card.appendChild(numberBox);
-// CREATE CARD NUMBER
-    const ranges = [
+    // BINGO headings
+    const letters = ["B", "I", "N", "G", "O"];
+
+    letters.forEach(letter => {
+        const header = document.createElement("div");
+        header.className = "cell header";
+        header.textContent = letter;
+        card.appendChild(header);
+    });
+
+    // Generate 5 columns of 5 numbers
+    const columns = [
         [1, 15],
         [16, 30],
         [31, 45],
@@ -336,55 +340,37 @@ card.appendChild(numberBox);
         [61, 75]
     ];
 
-    window.cardNumbers = [];
-
     for (let row = 0; row < 5; row++) {
-        for (let column = 0; column < 5; column++) {
+        for (let col = 0; col < 5; col++) {
 
             const cell = document.createElement("div");
             cell.className = "cell";
 
-            // FREE CENTER
-            if (row === 2 && column === 2) {
+            // FREE center
+            if (row === 2 && col === 2) {
                 cell.textContent = "FREE";
                 cell.classList.add("free");
-                cell.dataset.number = "0";
-
             } else {
+                const min = columns[col][0];
+                const max = columns[col][1];
 
                 let number;
-
                 do {
-                    number =
-                        Math.floor(
-                            Math.random() *
-                            (ranges[column][1] - ranges[column][0] + 1)
-                        ) + ranges[column][0];
-
-                } while (window.cardNumbers.includes(number));
-
-                window.cardNumbers.push(number);
+                    number = Math.floor(Math.random() * (max - min + 1)) + min;
+                } while (
+                    [...card.querySelectorAll(".cell")]
+                        .some(c => c.textContent == number)
+                );
 
                 cell.textContent = number;
                 cell.dataset.number = number;
-
-                // CLICK CARD NUMBER
-                cell.onclick = function () {
-
-                    if (calledNumbers.includes(number)) {
-                        cell.classList.toggle("called");
-                        checkWin();
-                    } else {
-                        document.getElementById("status").textContent =
-                            "Wait! Number " + number + " has not been called.";
-                    }
-                };
             }
 
             card.appendChild(cell);
         }
     }
 }
+```
 
     /* NUMBER RANGES */
     let ranges = [
