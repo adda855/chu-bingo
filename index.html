@@ -61,6 +61,8 @@ const ranges = [[1,15],[16,30],[31,45],[46,60],[61,75]];
 let user = null, roomId = null, roomData = null, isHost = false;
 let playerUnsub = null, roomUnsub = null, claimsUnsub = null;
 let playerDocs = [], myPlayer = null, processingClaim = false;
+let autoCallTimer = null, autoCallBusy = false;
+const AUTO_CALL_INTERVAL_MS = 5000; // automatically call a number every 5 seconds
 const roomRef = () => doc(db,"rooms",roomId);
 const playerRef = uid => doc(db,"rooms",roomId,"players",uid);
 const rand = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
@@ -109,9 +111,7 @@ function render(){
     ["B","I","N","G","O"].forEach(l=>{const e=document.createElement("div");e.className="cell head";e.textContent=l;grid.appendChild(e)});
     for(let r=0;r<5;r++)for(let c=0;c<5;c++){const e=document.createElement("div");e.className="cell";const v=(r===2&&c===2)?"FREE":cardValue(p,c,r);e.textContent=v;e.dataset.value=v;if(v==="FREE"){e.classList.add("free","marked")}else if(calls.includes(Number(v))){e.classList.add("marked")}grid.appendChild(e)}
     box.appendChild(grid);
-    const claim=document.createElement("button");claim.textContent="🎉 Claim BINGO";claim.disabled=!roomData.gameStarted||!!roomData.gameWon;
-    claim.addEventListener("click",async()=>{if(!roomId||!roomData?.gameStarted||roomData?.gameWon)return;try{if(!cardHasWin(p,calls)){if(p.uid===user.uid)setStatus("Not a winning pattern yet. Keep playing!");return;}if(p.uid!==user.uid){setStatus("You can only claim BINGO for your own card.");return;}await addDoc(collection(db,"rooms",roomId,"claims"),{uid:user.uid,name:p.name,cardId:p.cardId,roundStartedAt:roomData.roundStartedAt,createdAt:serverTimestamp()});setStatus("BINGO claim sent for verification…");}catch(e){setStatus("Could not submit claim: "+friendlyError(e));}});
-    box.appendChild(claim);root.appendChild(box);
+    root.appendChild(box);
   });
   if(roomData.gameWon){setStatus("🎉 BINGO! "+(roomData.winnerName||"A player")+" wins! The host has stopped the game.");}
 }
@@ -149,34 +149,59 @@ async function joinRoom(){
     await setDoc(pRef,player,{merge:true});myPlayer=player;showRoom();listenRoom();setStatus("Connected to room "+roomId+".");
   }catch(e){roomId=null;setStatus("Could not join room: "+friendlyError(e));}
 }
-function listenRoom(){
-  if(roomUnsub)roomUnsub();if(playerUnsub)playerUnsub();if(claimsUnsub)claimsUnsub();
-  roomUnsub=onSnapshot(roomRef(),snap=>{if(!snap.exists()){setStatus("This room no longer exists.");return}roomData=snap.data();render();},e=>setStatus("Room sync error: "+friendlyError(e)));
-  playerUnsub=onSnapshot(collection(db,"rooms",roomId,"players"),snap=>{playerDocs=snap.docs.map(d=>d.data()).sort((a,b)=>(a.joinedAt||0)-(b.joinedAt||0));render();},e=>setStatus("Player sync error: "+friendlyError(e)));
-  if(isHost){
-    claimsUnsub=onSnapshot(collection(db,"rooms",roomId,"claims"),async snap=>{
-      if(!roomData||roomData.gameWon||!roomData.gameStarted)return;
-      for(const claimDoc of snap.docs){
-        const claim=claimDoc.data();
-        if(claim.processed)continue;
-        const p=playerDocs.find(x=>x.uid===claim.uid);
-        if(p&&claim.cardId===p.cardId&&claim.roundStartedAt===roomData.roundStartedAt&&cardHasWin(p,roomData.calledNumbers||[])){
-          try{await updateDoc(roomRef(),{gameWon:true,gameStarted:false,winnerUid:p.uid,winnerName:p.name});setStatus("Verified BINGO! "+p.name+" wins.");}
-          catch(e){setStatus("Winner update failed: "+friendlyError(e))}
-        }else{
-          if(claim.uid===user.uid)setStatus("BINGO claim was not valid for the current round.");
-        }
-      }
-    },e=>setStatus("Claim sync error: "+friendlyError(e)));
+let checkingAutomaticWinner = false;
+async function checkAutomaticWinner(){
+  if(!isHost||!roomId||!roomData?.gameStarted||roomData?.gameWon||checkingAutomaticWinner)return;
+  const activeRoomId=roomId;
+  const roundStartedAt=roomData.roundStartedAt;
+  const calls=roomData.calledNumbers||[];
+  const winner=playerDocs.find(p=>cardHasWin(p,calls));
+  if(!winner)return;
+  checkingAutomaticWinner=true;
+  try{
+    const ref=doc(db,"rooms",activeRoomId);
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(ref);
+      if(!snap.exists())return;
+      const latest=snap.data();
+      if(latest.hostUid!==user.uid||!latest.gameStarted||latest.gameWon||latest.roundStartedAt!==roundStartedAt)return;
+      const latestCalls=latest.calledNumbers||[];
+      if(!cardHasWin(winner,latestCalls))return;
+      tx.update(ref,{gameWon:true,gameStarted:false,winnerUid:winner.uid,winnerName:winner.name,winningCardId:winner.cardId,endedAt:serverTimestamp()});
+    });
+  }catch(e){setStatus("Automatic winner check failed: "+friendlyError(e));}
+  finally{checkingAutomaticWinner=false;}
+}
+function syncAutoCaller(){
+  const shouldRun = isHost && !!roomId && !!roomData?.gameStarted && !roomData?.gameWon && (roomData?.calledNumbers||[]).length < 75;
+  if(!shouldRun){if(autoCallTimer){clearInterval(autoCallTimer);autoCallTimer=null;}return;}
+  if(!autoCallTimer){
+    setStatus("Game started. Numbers will be called automatically every 5 seconds.");
+    autoCallTimer=setInterval(async()=>{
+      if(autoCallBusy)return;
+      if(!isHost||!roomData?.gameStarted||roomData?.gameWon){syncAutoCaller();return;}
+      autoCallBusy=true;
+      try{await callNumber();}finally{autoCallBusy=false;}
+    },AUTO_CALL_INTERVAL_MS);
   }
 }
-async function startGame(){if(!isHost||!roomId)return;try{await updateDoc(roomRef(),{gameStarted:true,gameWon:false,calledNumbers:[],winnerUid:null,winnerName:null,roundStartedAt:Date.now()});setStatus("Game started. Numbers are shared with everyone.");}catch(e){setStatus("Start failed: "+friendlyError(e))}}
+function listenRoom(){
+  if(roomUnsub)roomUnsub();if(playerUnsub)playerUnsub();if(claimsUnsub)claimsUnsub();
+  roomUnsub=onSnapshot(roomRef(),snap=>{if(!snap.exists()){setStatus("This room no longer exists.");return}roomData=snap.data();render();checkAutomaticWinner();syncAutoCaller();},e=>setStatus("Room sync error: "+friendlyError(e)));
+  playerUnsub=onSnapshot(collection(db,"rooms",roomId,"players"),snap=>{playerDocs=snap.docs.map(d=>d.data()).sort((a,b)=>(a.joinedAt||0)-(b.joinedAt||0));render();checkAutomaticWinner();},e=>setStatus("Player sync error: "+friendlyError(e)));
+}
+async function startGame(){if(!isHost||!roomId)return;try{await updateDoc(roomRef(),{gameStarted:true,gameWon:false,calledNumbers:[],winnerUid:null,winnerName:null,roundStartedAt:Date.now()});setStatus("Game started. First number will be called automatically in 5 seconds.");}catch(e){setStatus("Start failed: "+friendlyError(e))}}
 async function callNumber(){
   if(!isHost||!roomId||!roomData?.gameStarted||roomData?.gameWon)return;
-  try{await runTransaction(db,async tx=>{const snap=await tx.get(roomRef());if(!snap.exists())throw new Error("Room not found");const data=snap.data();if(data.hostUid!==user.uid||!data.gameStarted||data.gameWon)throw new Error("Game is not active or you are not the host.");const calls=data.calledNumbers||[];if(calls.length>=75)throw new Error("All 75 numbers have been called.");let n;do{n=rand(1,75)}while(calls.includes(n));tx.update(roomRef(),{calledNumbers:[...calls,n]})});const latest=roomData?.calledNumbers||[];setStatus("Number called and synchronized.");if("speechSynthesis"in window){speechSynthesis.cancel();const n=roomData?.calledNumbers?.at(-1);if(n){const u=new SpeechSynthesisUtterance(letterFor(n)+" "+n);u.rate=.9;speechSynthesis.speak(u)}}}catch(e){setStatus("Could not call number: "+friendlyError(e))}
+  try{
+    let calledN=null;
+    await runTransaction(db,async tx=>{const snap=await tx.get(roomRef());if(!snap.exists())throw new Error("Room not found");const data=snap.data();if(data.hostUid!==user.uid||!data.gameStarted||data.gameWon)throw new Error("Game is not active or you are not the host.");const calls=data.calledNumbers||[];if(calls.length>=75)throw new Error("All 75 numbers have been called.");let n;do{n=rand(1,75)}while(calls.includes(n));calledN=n;tx.update(roomRef(),{calledNumbers:[...calls,n]})});
+    setStatus("Auto-calling numbers. Next call in 5 seconds.");
+    if(calledN!==null&&"speechSynthesis"in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(letterFor(calledN)+" "+calledN);u.rate=.9;speechSynthesis.speak(u)}
+  }catch(e){setStatus("Could not call number: "+friendlyError(e))}
 }
 async function newRound(){if(!isHost||!roomId)return;try{await updateDoc(roomRef(),{gameStarted:false,gameWon:false,calledNumbers:[],winnerUid:null,winnerName:null,roundStartedAt:Date.now()});setStatus("Round reset. Press Start Game when ready.");}catch(e){setStatus("Could not reset round: "+friendlyError(e))}}
-async function leaveRoom(){if(roomUnsub)roomUnsub();if(playerUnsub)playerUnsub();if(claimsUnsub)claimsUnsub();roomUnsub=playerUnsub=claimsUnsub=null;roomId=null;roomData=null;playerDocs=[];myPlayer=null;isHost=false;$("roomPanel").classList.add("hidden");$("entryPanel").classList.remove("hidden");$("roomInput").value="";setStatus("Left room.");}
+async function leaveRoom(){if(autoCallTimer){clearInterval(autoCallTimer);autoCallTimer=null;}if(roomUnsub)roomUnsub();if(playerUnsub)playerUnsub();if(claimsUnsub)claimsUnsub();roomUnsub=playerUnsub=claimsUnsub=null;roomId=null;roomData=null;playerDocs=[];myPlayer=null;isHost=false;$("roomPanel").classList.add("hidden");$("entryPanel").classList.remove("hidden");$("roomInput").value="";setStatus("Left room.");}
 $("createBtn").addEventListener("click",createRoom);
 $("joinBtn").addEventListener("click",joinRoom);
 $("startBtn").addEventListener("click",startGame);
