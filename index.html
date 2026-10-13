@@ -16,6 +16,7 @@
     <p class="small">Create a room as host, then share the room code with your players. Everyone needs an internet connection and this page open.</p>
     <div class="row"><input id="playerName" maxlength="30" placeholder="Your player name"><button id="createBtn">Create Room</button></div>
     <div class="row" style="margin-top:10px"><input id="roomInput" maxlength="6" placeholder="6-character room code" autocapitalize="characters"><button id="joinBtn" class="secondary">Join Room</button></div>
+    <div id="entryStatus" class="status" role="status" aria-live="polite">Connecting to Firebase…</div>
   </section>
 
   <section class="panel hidden" id="roomPanel">
@@ -64,19 +65,30 @@ const roomRef = () => doc(db,"rooms",roomId);
 const playerRef = uid => doc(db,"rooms",roomId,"players",uid);
 const rand = (min,max) => Math.floor(Math.random()*(max-min+1))+min;
 const letterFor = n => n<=15?"B":n<=30?"I":n<=45?"N":n<=60?"G":"O";
-function makeCard(){return ranges.map(([min,max])=>{const a=[];while(a.length<5){const n=rand(min,max);if(!a.includes(n))a.push(n)}return a})}
+function makeCard(){
+  const cols=ranges.map(([min,max])=>{const a=[];while(a.length<5){const n=rand(min,max);if(!a.includes(n))a.push(n)}return a});
+  // Firestore forbids arrays nested inside arrays. Store each column as a named field.
+  return {B:cols[0],I:cols[1],N:cols[2],G:cols[3],O:cols[4]};
+}
+const colNames=["B","I","N","G","O"];
+function cardValue(card,c,r){
+  if(!card||!card.cols)return undefined;
+  // Accept older cards stored as nested arrays, plus the Firestore-safe object format.
+  const col=Array.isArray(card.cols)?card.cols[c]:card.cols[colNames[c]];
+  return col?.[r];
+}
 function cardHasWin(card,calls){
-  if(!card||!Array.isArray(card.cols))return false;
+  if(!card||!card.cols)return false;
   const marked=v=>v==="FREE"||calls.includes(Number(v));
-  for(let r=0;r<5;r++){if(Array.from({length:5},(_,c)=>r===2&&c===2?"FREE":card.cols[c][r]).every(marked))return true}
-  for(let c=0;c<5;c++){if(Array.from({length:5},(_,r)=>r===2&&c===2?"FREE":card.cols[c][r]).every(marked))return true}
-  if(Array.from({length:5},(_,i)=>i===2?"FREE":card.cols[i][i]).every(marked))return true;
-  if(Array.from({length:5},(_,i)=>i===2?"FREE":card.cols[4-i][i]).every(marked))return true;
+  for(let r=0;r<5;r++){if(Array.from({length:5},(_,c)=>r===2&&c===2?"FREE":cardValue(card,c,r)).every(marked))return true}
+  for(let c=0;c<5;c++){if(Array.from({length:5},(_,r)=>r===2&&c===2?"FREE":cardValue(card,c,r)).every(marked))return true}
+  if(Array.from({length:5},(_,i)=>i===2?"FREE":cardValue(card,i,i)).every(marked))return true;
+  if(Array.from({length:5},(_,i)=>i===2?"FREE":cardValue(card,4-i,i)).every(marked))return true;
   return false;
 }
 function makeCardId(){return String(rand(100000,999999))}
 function cleanName(){return $("playerName").value.trim().slice(0,30)||"Player"}
-function setStatus(s){$("status").textContent=s}
+function setStatus(s){const roomStatus=$("status"),entryStatus=$("entryStatus");if(roomStatus)roomStatus.textContent=s;if(entryStatus)entryStatus.textContent=s;}
 function showRoom(){ $("entryPanel").classList.add("hidden"); $("roomPanel").classList.remove("hidden"); $("roomCodeLabel").textContent=roomId; $("roleLabel").textContent=isHost?"You are the host. You control the calls.":"You joined as a player."; }
 function render(){
   if(!roomData)return;
@@ -95,7 +107,7 @@ function render(){
     const id=document.createElement("div");id.className="cardid";id.textContent="CARD NUMBER: "+p.cardId;box.appendChild(id);
     const grid=document.createElement("div");grid.className="grid";
     ["B","I","N","G","O"].forEach(l=>{const e=document.createElement("div");e.className="cell head";e.textContent=l;grid.appendChild(e)});
-    for(let r=0;r<5;r++)for(let c=0;c<5;c++){const e=document.createElement("div");e.className="cell";const v=(r===2&&c===2)?"FREE":p.cols[c][r];e.textContent=v;e.dataset.value=v;if(v==="FREE"){e.classList.add("free","marked")}else if(calls.includes(Number(v))){e.classList.add("marked")}grid.appendChild(e)}
+    for(let r=0;r<5;r++)for(let c=0;c<5;c++){const e=document.createElement("div");e.className="cell";const v=(r===2&&c===2)?"FREE":cardValue(p,c,r);e.textContent=v;e.dataset.value=v;if(v==="FREE"){e.classList.add("free","marked")}else if(calls.includes(Number(v))){e.classList.add("marked")}grid.appendChild(e)}
     box.appendChild(grid);
     const claim=document.createElement("button");claim.textContent="🎉 Claim BINGO";claim.disabled=!roomData.gameStarted||!!roomData.gameWon;
     claim.addEventListener("click",async()=>{if(!roomId||!roomData?.gameStarted||roomData?.gameWon)return;try{if(!cardHasWin(p,calls)){if(p.uid===user.uid)setStatus("Not a winning pattern yet. Keep playing!");return;}if(p.uid!==user.uid){setStatus("You can only claim BINGO for your own card.");return;}await addDoc(collection(db,"rooms",roomId,"claims"),{uid:user.uid,name:p.name,cardId:p.cardId,roundStartedAt:roomData.roundStartedAt,createdAt:serverTimestamp()});setStatus("BINGO claim sent for verification…");}catch(e){setStatus("Could not submit claim: "+friendlyError(e));}});
@@ -107,17 +119,21 @@ function friendlyError(e){
   if(e?.code==="permission-denied")return "Firebase rules blocked this action. Apply the Firestore rules shown below.";
   if(e?.code==="auth/operation-not-allowed")return "Enable Anonymous sign-in in Firebase Authentication.";
   if(e?.code==="unavailable")return "Firebase is temporarily unavailable. Check your internet connection.";
+  if(e?.code==="auth/network-request-failed")return "Cannot reach Firebase Authentication. Check your internet connection and try again.";
+  if(e?.code==="auth/invalid-api-key")return "Firebase API key is invalid. Recheck the web app config in Firebase Console.";
   return e?.message||"Unknown error";
 }
 async function createRoom(){
   if(!user)return setStatus("Signing in… please try again in a moment.");
-  const name=cleanName(); roomId=Math.random().toString(36).slice(2,8).toUpperCase();
+  $("createBtn").disabled=true;setStatus("Creating room… please wait.");
+  const name=cleanName(); roomId=Array.from({length:6},()=>"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[Math.floor(Math.random()*36)]).join("");
   const ref=doc(db,"rooms",roomId); const player={uid:user.uid,name,cardId:makeCardId(),cols:makeCard(),joinedAt:Date.now()};
   try{
     await setDoc(ref,{hostUid:user.uid,hostName:name,gameStarted:false,gameWon:false,calledNumbers:[],winnerUid:null,winnerName:null,createdAt:serverTimestamp()});
     await setDoc(doc(db,"rooms",roomId,"players",user.uid),player);
     myPlayer=player;isHost=true;showRoom();listenRoom();setStatus("Room created. Share the code so players can join.");
   }catch(e){roomId=null;setStatus("Could not create room: "+friendlyError(e));}
+  finally{$("createBtn").disabled=false;}
 }
 async function joinRoom(){
   if(!user)return setStatus("Signing in… please try again in a moment.");
