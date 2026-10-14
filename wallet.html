@@ -1,0 +1,206 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CHU Bingo — Account & Wallet</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b1238;color:white;font-family:Arial,sans-serif}
+header{padding:20px;text-align:center;background:#11194a;font-size:24px;font-weight:bold}
+main{max-width:650px;margin:auto;padding:16px}
+.panel{background:#171f59;padding:20px;border-radius:14px;margin:15px 0}
+input,button{width:100%;padding:13px;margin:7px 0;border:0;border-radius:8px;font-size:16px}
+button{background:#ffd32a;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.note{color:#dce2ff;line-height:1.5;font-size:14px}
+.status{white-space:pre-wrap;line-height:1.5}
+a{color:#ffd32a}
+</style>
+</head>
+<body>
+<header>🎱 CHU Bingo — Account & Wallet</header>
+<main>
+  <p><a href="./">← Return to Bingo</a></p>
+
+  <section class="panel">
+    <h2>Phone number</h2>
+    <p class="note">Enter your Ethiopian phone number in international format.
+    This version saves it as unverified; it does not send an SMS code.</p>
+    <input id="phone" type="tel" placeholder="+251912345678"
+      autocomplete="tel" maxlength="13">
+    <button id="savePhone">Save phone number</button>
+  </section>
+
+  <section class="panel">
+    <h2>Deposit (ETB)</h2>
+    <p class="note">Demo request only. No payment will be taken.</p>
+    <input id="depositAmount" type="number" min="1" max="100000"
+      step="1" placeholder="Deposit amount in ETB">
+    <button id="depositBtn">Submit demo deposit request</button>
+  </section>
+
+  <section class="panel">
+    <h2>Withdraw (ETB)</h2>
+    <p class="note">Demo request only. No money will be sent.</p>
+    <input id="withdrawAmount" type="number" min="1" max="100000"
+      step="1" placeholder="Withdrawal amount in ETB">
+    <input id="payoutPhone" type="tel" maxlength="13"
+      placeholder="+251912345678 (payout phone)">
+    <button id="withdrawBtn">Submit demo withdrawal request</button>
+  </section>
+
+  <section class="panel">
+    <h2>My request history</h2>
+    <button id="refresh">Refresh history</button>
+    <div id="history" class="note">Loading…</div>
+  </section>
+
+  <p id="status" class="status" role="status" aria-live="polite"></p>
+  <p class="note">DEMO ONLY: Telebirr is not connected. Requests do not
+  move money, create a real balance, or guarantee a payout.</p>
+</main>
+
+<script type="module">
+import {initializeApp, getApp}
+  from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import {
+  getAuth, signInAnonymously
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, addDoc, collection,
+  query, where, getDocs, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const config = {
+  apiKey: "AIzaSyD42JZbRUjqVw0sqEO5aVA3HSdNQliB58o",
+  authDomain: "chubingo.firebaseapp.com",
+  projectId: "chubingo",
+  storageBucket: "chubingo.firebasestorage.app",
+  messagingSenderId: "420369208507",
+  appId: "1:420369208507:web:482edd0a65c65d06b6859e",
+  measurementId: "G-VCZR013WT4"
+};
+
+const app = initializeApp(config, "chuBingoWallet");
+const auth = getAuth(app);
+const db = getFirestore(app);
+const $ = id => document.getElementById(id);
+let user = null;
+
+function status(message) {
+  $("status").textContent = message;
+}
+
+function validPhone(phone) {
+  return /^\+251[0-9]{9}$/.test(phone);
+}
+
+async function start() {
+  if (!auth.currentUser) await signInAnonymously(auth);
+  user = auth.currentUser;
+
+  const profile = await getDoc(doc(db, "profiles", user.uid));
+  if (profile.exists()) $("phone").value = profile.data().phone || "";
+
+  await history();
+}
+
+async function savePhone() {
+  const phone = $("phone").value.trim();
+  if (!validPhone(phone)) {
+    status("Enter a number like +251912345678.");
+    return;
+  }
+
+  await setDoc(doc(db, "profiles", user.uid), {
+    phone,
+    phoneVerified: false,
+    updatedAt: serverTimestamp()
+  }, {merge: true});
+
+  status("Phone number saved as UNVERIFIED.");
+}
+
+async function requestMoney(type) {
+  const amount = Number(
+    $(type === "deposit" ? "depositAmount" : "withdrawAmount").value
+  );
+  const phone = type === "withdraw"
+    ? $("payoutPhone").value.trim()
+    : $("phone").value.trim();
+
+  if (!Number.isFinite(amount) || amount < 1 || amount > 100000) {
+    status("Enter an amount between 1 and 100000 ETB.");
+    return;
+  }
+  if (!validPhone(phone)) {
+    status("Enter a valid Ethiopian number like +251912345678.");
+    return;
+  }
+
+  await addDoc(collection(db, "walletRequests"), {
+    uid: user.uid,
+    type,
+    amount,
+    phone,
+    status: "demo_disabled",
+    createdAt: serverTimestamp()
+  });
+
+  status("Demo request recorded. NO MONEY WAS TRANSFERRED.");
+  $(type === "deposit" ? "depositAmount" : "withdrawAmount").value = "";
+  await history();
+}
+
+async function history() {
+  const result = await getDocs(query(
+    collection(db, "walletRequests"),
+    where("uid", "==", user.uid)
+  ));
+
+  const root = $("history");
+  root.replaceChildren();
+
+  if (result.empty) {
+    root.textContent = "No requests yet.";
+    return;
+  }
+
+  result.docs.forEach(d => {
+    const x = d.data();
+    const item = document.createElement("p");
+    item.textContent =
+      `${x.type.toUpperCase()} — ${x.amount} ETB — DEMO ONLY`;
+    root.appendChild(item);
+  });
+}
+
+$("savePhone").addEventListener("click", async () => {
+  try { await savePhone(); }
+  catch (e) { status("Could not save phone: " + e.message); }
+});
+
+$("depositBtn").addEventListener("click", async () => {
+  try { await requestMoney("deposit"); }
+  catch (e) { status("Could not save request: " + e.message); }
+});
+
+$("withdrawBtn").addEventListener("click", async () => {
+  try { await requestMoney("withdraw"); }
+  catch (e) { status("Could not save request: " + e.message); }
+});
+
+$("refresh").addEventListener("click", async () => {
+  try { await history(); status("History refreshed."); }
+  catch (e) { status("Could not load history: " + e.message); }
+});
+
+start().catch(e => status(
+  "Setup failed: " + e.message +
+  "\nCheck Firebase Authentication and Firestore rules."
+));
+</script>
+</body>
+</html>
