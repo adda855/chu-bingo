@@ -1,69 +1,73 @@
+
 name: CHU Bingo Telegram Notifications
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "*/5 * * * *"
-  workflow_dispatch:
 
 permissions:
   contents: read
-
-concurrency:
-  group: chu-bingo-telegram-notify
-  cancel-in-progress: false
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "20"
 
-      - name: Install Firebase Admin SDK
-        run: npm install --no-save firebase-admin
+      - name: Install Firebase Admin
+        run: npm install firebase-admin
 
-      - name: Check rooms and send Telegram notifications
+      - name: Check games and notify Telegram
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           node <<'NODE'
-          const { initializeApp, cert } = require("firebase-admin/app");
-          const { getFirestore } = require("firebase-admin/firestore");
+          const admin = require("firebase-admin");
 
           async function main() {
+            for (const name of [
+              "FIREBASE_SERVICE_ACCOUNT",
+              "TELEGRAM_BOT_TOKEN",
+              "TELEGRAM_CHAT_ID"
+            ]) {
+              if (!process.env[name]) {
+                throw new Error("Missing GitHub secret: " + name);
+              }
+            }
+
             const serviceAccount = JSON.parse(
               process.env.FIREBASE_SERVICE_ACCOUNT
             );
 
-            initializeApp({
-              credential: cert(serviceAccount),
+            admin.initializeApp({
+              credential: admin.credential.cert(serviceAccount),
               projectId: "chubingo"
             });
 
-            const db = getFirestore();
-            const token = process.env.TELEGRAM_BOT_TOKEN;
-            const chatId = process.env.TELEGRAM_CHAT_ID;
+            const db = admin.firestore();
 
-            if (!token || !chatId) {
-              throw new Error("Telegram secrets are not configured.");
-            }
+            async function notifyOnce(id, message) {
+              const state = db.collection("telegramNotifications").doc(id);
+              const existing = await state.get();
 
-            async function sendTelegram(text) {
+              if (existing.exists) return;
+
               const response = await fetch(
-                `https://api.telegram.org/bot${token}/sendMessage`,
+                `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`,
                 {
                   method: "POST",
-                  headers: { "Content-Type": "application/json" },
+                  headers: {
+                    "Content-Type": "application/json"
+                  },
                   body: JSON.stringify({
-                    chat_id: chatId,
-                    text
+                    chat_id: process.env.TELEGRAM_CHAT_ID,
+                    text: message
                   })
                 }
               );
@@ -71,52 +75,45 @@ jobs:
               const result = await response.json();
 
               if (!response.ok || !result.ok) {
-                throw new Error("Telegram could not send the message.");
+                throw new Error("Telegram message failed: " +
+                  JSON.stringify(result));
               }
+
+              await state.create({
+                sentAt: admin.firestore.FieldValue.serverTimestamp()
+              });
             }
 
             const rooms = await db.collection("rooms").get();
 
-            for (const document of rooms.docs) {
-              const room = document.data();
-              const roomRef = document.ref;
-              const roundKey = String(
-                room.roundStartedAt ?? "initial"
-              );
+            for (const roomDoc of rooms.docs) {
+              const room = roomDoc.data();
+              const roomId = roomDoc.id;
+              const round = String(room.roundStartedAt || "unknown");
 
-              if (
-                room.gameStarted === true &&
-                room.gameWon !== true &&
-                room.telegramStartNotifiedRound !== roundKey
-              ) {
-                await sendTelegram(
-                  `🎱 CHU Bingo game started!\nRoom: ${document.id}`
+              if (room.gameStarted === true) {
+                await notifyOnce(
+                  `${roomId}_started_${round}`,
+                  `🎱 CHU Bingo: Game started!\nRoom: ${roomId}`
                 );
-
-                await roomRef.update({
-                  telegramStartNotifiedRound: roundKey
-                });
               }
 
-              if (
-                room.gameWon === true &&
-                room.telegramWinnerNotifiedRound !== roundKey
-              ) {
-                await sendTelegram(
-                  `🏆 CHU Bingo winner!\nRoom: ${document.id}\nWinner: ${room.winnerName || "Player"}`
-                );
+              if (room.gameWon === true && room.winnerUid) {
+                const winner = room.winnerName || "Player";
 
-                await roomRef.update({
-                  telegramWinnerNotifiedRound: roundKey
-                });
+                await notifyOnce(
+                  `${roomId}_winner_${round}_${room.winnerUid}`,
+                  `🏆 CHU Bingo: We have a winner!\nRoom: ${roomId}\nWinner: ${winner}`
+                );
               }
             }
 
-            console.log(`Checked ${rooms.size} room(s).`);
+            console.log("Game notification check completed.");
           }
 
           main().catch(error => {
-            console.error(error.message);
+            console.error(error);
             process.exit(1);
           });
           NODE
+
