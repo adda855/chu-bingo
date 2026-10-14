@@ -1,0 +1,122 @@
+name: CHU Bingo Telegram Notifications
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chu-bingo-telegram-notify
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Firebase Admin SDK
+        run: npm install --no-save firebase-admin
+
+      - name: Check rooms and send Telegram notifications
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          node <<'NODE'
+          const { initializeApp, cert } = require("firebase-admin/app");
+          const { getFirestore } = require("firebase-admin/firestore");
+
+          async function main() {
+            const serviceAccount = JSON.parse(
+              process.env.FIREBASE_SERVICE_ACCOUNT
+            );
+
+            initializeApp({
+              credential: cert(serviceAccount),
+              projectId: "chubingo"
+            });
+
+            const db = getFirestore();
+            const token = process.env.TELEGRAM_BOT_TOKEN;
+            const chatId = process.env.TELEGRAM_CHAT_ID;
+
+            if (!token || !chatId) {
+              throw new Error("Telegram secrets are not configured.");
+            }
+
+            async function sendTelegram(text) {
+              const response = await fetch(
+                `https://api.telegram.org/bot${token}/sendMessage`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    chat_id: chatId,
+                    text
+                  })
+                }
+              );
+
+              const result = await response.json();
+
+              if (!response.ok || !result.ok) {
+                throw new Error("Telegram could not send the message.");
+              }
+            }
+
+            const rooms = await db.collection("rooms").get();
+
+            for (const document of rooms.docs) {
+              const room = document.data();
+              const roomRef = document.ref;
+              const roundKey = String(
+                room.roundStartedAt ?? "initial"
+              );
+
+              if (
+                room.gameStarted === true &&
+                room.gameWon !== true &&
+                room.telegramStartNotifiedRound !== roundKey
+              ) {
+                await sendTelegram(
+                  `🎱 CHU Bingo game started!\nRoom: ${document.id}`
+                );
+
+                await roomRef.update({
+                  telegramStartNotifiedRound: roundKey
+                });
+              }
+
+              if (
+                room.gameWon === true &&
+                room.telegramWinnerNotifiedRound !== roundKey
+              ) {
+                await sendTelegram(
+                  `🏆 CHU Bingo winner!\nRoom: ${document.id}\nWinner: ${room.winnerName || "Player"}`
+                );
+
+                await roomRef.update({
+                  telegramWinnerNotifiedRound: roundKey
+                });
+              }
+            }
+
+            console.log(`Checked ${rooms.size} room(s).`);
+          }
+
+          main().catch(error => {
+            console.error(error.message);
+            process.exit(1);
+          });
+          NODE
