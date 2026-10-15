@@ -27,8 +27,9 @@ a{color:#ffd32a}
   <section class="panel">
     <h2>Verify your phone</h2>
     <p class="note">
-      Enter your own Ethiopian phone number. Firebase will send an SMS
-      verification code. SMS availability, quotas and charges may apply.
+      Enter your Ethiopian number in international format.
+      Firebase will send an SMS verification code. SMS availability,
+      quotas and charges may apply.
     </p>
     <input id="phone" type="tel" placeholder="+251912345678"
       autocomplete="tel" maxlength="13">
@@ -45,7 +46,7 @@ a{color:#ffd32a}
     <p class="note">Demo request only. No payment will be taken.</p>
     <input id="depositAmount" type="number" min="1" max="100000"
       step="1" placeholder="Deposit amount in ETB">
-    <button id="depositBtn">Submit demo deposit request</button>
+    <button id="depositBtn" disabled>Submit demo deposit request</button>
   </section>
 
   <section class="panel">
@@ -55,7 +56,7 @@ a{color:#ffd32a}
       step="1" placeholder="Withdrawal amount in ETB">
     <input id="payoutPhone" type="tel" maxlength="13"
       placeholder="+251912345678 (payout phone)">
-    <button id="withdrawBtn">Submit demo withdrawal request</button>
+    <button id="withdrawBtn" disabled>Submit demo withdrawal request</button>
   </section>
 
   <section class="panel">
@@ -116,19 +117,14 @@ function setWalletEnabled(enabled) {
   $("withdrawBtn").disabled = !enabled;
 }
 
-function getPhoneNumber() {
-  return auth.currentUser?.phoneNumber || "";
-}
-
 async function start() {
-  // Preserve the existing anonymous UID where possible so that
-  // existing room-linked identity and wallet history aren't discarded.
   if (!auth.currentUser) {
     await signInAnonymously(auth);
   }
+
   user = auth.currentUser;
 
-  if (user && !user.isAnonymous && user.phoneNumber) {
+  if (!user.isAnonymous && user.phoneNumber) {
     $("phone").value = user.phoneNumber;
     $("phoneState").textContent =
       "Phone verified: " + user.phoneNumber;
@@ -140,19 +136,12 @@ async function start() {
   }
 
   try {
-    if (user && !user.isAnonymous && user.phoneNumber) {
-      const ref = doc(db, "profiles", user.uid);
-      const profile = await getDoc(ref);
-
-      if (!profile.exists() ||
-          profile.data().phone !== user.phoneNumber ||
-          profile.data().phoneVerified !== true) {
-        await setDoc(ref, {
-          phone: user.phoneNumber,
-          phoneVerified: true,
-          updatedAt: serverTimestamp()
-        }, {merge: true});
-      }
+    if (!user.isAnonymous && user.phoneNumber) {
+      await setDoc(doc(db, "profiles", user.uid), {
+        phone: user.phoneNumber,
+        phoneVerified: true,
+        updatedAt: serverTimestamp()
+      }, {merge: true});
     }
     await history();
   } catch (e) {
@@ -180,12 +169,11 @@ async function sendCode() {
   }
 
   $("sendCode").disabled = true;
+
   try {
     const appVerifier = getVerifier();
 
-    // If this browser already has an anonymous account, link the
-    // verified phone to it rather than intentionally creating a new UID.
-    if (auth.currentUser?.isAnonymous) {
+    if (auth.currentUser && auth.currentUser.isAnonymous) {
       confirmation = await linkWithPhoneNumber(
         auth.currentUser, phone, appVerifier
       );
@@ -196,10 +184,11 @@ async function sendCode() {
     }
 
     pendingPhone = phone;
-    status("SMS code sent. Enter the code and press Verify phone number.");
+    status("SMS code sent. Enter it and press Verify phone number.");
   } catch (e) {
     status("Could not send code: " + e.message +
       "\nCheck authorized domains, SMS settings, quota and reCAPTCHA.");
+
     if (verifier) {
       try { verifier.clear(); } catch (_) {}
       verifier = null;
@@ -216,12 +205,14 @@ async function verifyCode() {
     status("First press Send verification code.");
     return;
   }
+
   if (!code) {
     status("Enter the SMS code you received.");
     return;
   }
 
   $("verifyCode").disabled = true;
+
   try {
     const result = await confirmation.confirm(code);
     user = result.user;
@@ -255,11 +246,13 @@ async function verifyCode() {
 
 async function requireVerifiedPhone() {
   user = auth.currentUser;
+
   if (!user || user.isAnonymous || !user.phoneNumber) {
     throw new Error("Verify your phone number before submitting requests.");
   }
 
   const profile = await getDoc(doc(db, "profiles", user.uid));
+
   if (!profile.exists() ||
       profile.data().phoneVerified !== true ||
       profile.data().phone !== user.phoneNumber) {
@@ -273,6 +266,7 @@ async function requestMoney(type) {
   const amount = Number(
     $(type === "deposit" ? "depositAmount" : "withdrawAmount").value
   );
+
   const phone = type === "withdraw"
     ? $("payoutPhone").value.trim()
     : auth.currentUser.phoneNumber;
@@ -281,6 +275,7 @@ async function requestMoney(type) {
     status("Enter an amount between 1 and 100000 ETB.");
     return;
   }
+
   if (!validPhone(phone)) {
     status("Enter a valid Ethiopian number like +251912345678.");
     return;
@@ -302,6 +297,7 @@ async function requestMoney(type) {
 
 async function history() {
   user = auth.currentUser;
+
   if (!user) {
     $("history").textContent = "Sign in to view request history.";
     return;
