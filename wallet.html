@@ -28,7 +28,7 @@ a{color:#ffd32a}
     <h2>Phone number</h2>
     <p class="note">Enter your Ethiopian phone number in international format.
     This version saves it as unverified; it does not send an SMS code.</p>
-    <input id="phone" type="tel" placeholder="+251912345678"
+    <input id="phone" type="tel" placeholder="+251959607451"
       autocomplete="tel" maxlength="13">
     <button id="savePhone">Save phone number</button>
   </section>
@@ -47,7 +47,7 @@ a{color:#ffd32a}
     <input id="withdrawAmount" type="number" min="1" max="100000"
       step="1" placeholder="Withdrawal amount in ETB">
     <input id="payoutPhone" type="tel" maxlength="13"
-      placeholder="+251912345678 (payout phone)">
+      placeholder="+251959607451 (payout phone)">
     <button id="withdrawBtn">Submit demo withdrawal request</button>
   </section>
 
@@ -136,7 +136,7 @@ async function requestMoney(type) {
     return;
   }
   if (!validPhone(phone)) {
-    status("Enter a valid Ethiopian number like +251912345678.");
+    status("Enter a valid Ethiopian number like +251959607451.");
     return;
   }
 
