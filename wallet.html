@@ -8,14 +8,14 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#0b1238;color:white;font-family:Arial,sans-serif}
-header{padding:20px;text-align:center;background:#11194a;font-size:24px;font-weight:bold}
+header{padding:20px;text-align:center;background:#11194a;font-size:22px;font-weight:bold}
 main{max-width:650px;margin:auto;padding:16px}
 .panel{background:#171f59;padding:20px;border-radius:14px;margin:15px 0}
 input,button{width:100%;padding:13px;margin:7px 0;border:0;border-radius:8px;font-size:16px}
 button{background:#ffd32a;font-weight:bold;cursor:pointer}
 button:disabled{opacity:.5;cursor:not-allowed}
 .note{color:#dce2ff;line-height:1.5;font-size:14px}
-.status{white-space:pre-wrap;line-height:1.5}
+.status{white-space:pre-wrap;line-height:1.5;overflow-wrap:anywhere}
 a{color:#ffd32a}
 </style>
 </head>
@@ -25,12 +25,19 @@ a{color:#ffd32a}
   <p><a href="./">← Return to Bingo</a></p>
 
   <section class="panel">
-    <h2>Phone number</h2>
-    <p class="note">Enter your Ethiopian phone number in international format.
-    This version saves it as unverified; it does not send an SMS code.</p>
-    <input id="phone" type="tel" placeholder="+251959607451"
+    <h2>Verify your phone</h2>
+    <p class="note">
+      Enter your own Ethiopian phone number. Firebase will send an SMS
+      verification code. SMS availability, quotas and charges may apply.
+    </p>
+    <input id="phone" type="tel" placeholder="+251912345678"
       autocomplete="tel" maxlength="13">
-    <button id="savePhone">Save phone number</button>
+    <div id="recaptcha-container"></div>
+    <button id="sendCode">Send verification code</button>
+    <input id="smsCode" type="text" inputmode="numeric"
+      autocomplete="one-time-code" placeholder="SMS verification code">
+    <button id="verifyCode">Verify phone number</button>
+    <p id="phoneState" class="note">Phone verification required.</p>
   </section>
 
   <section class="panel">
@@ -47,7 +54,7 @@ a{color:#ffd32a}
     <input id="withdrawAmount" type="number" min="1" max="100000"
       step="1" placeholder="Withdrawal amount in ETB">
     <input id="payoutPhone" type="tel" maxlength="13"
-      placeholder="+251959607451 (payout phone)">
+      placeholder="+251912345678 (payout phone)">
     <button id="withdrawBtn">Submit demo withdrawal request</button>
   </section>
 
@@ -58,15 +65,18 @@ a{color:#ffd32a}
   </section>
 
   <p id="status" class="status" role="status" aria-live="polite"></p>
-  <p class="note">DEMO ONLY: Telebirr is not connected. Requests do not
-  move money, create a real balance, or guarantee a payout.</p>
+  <p class="note">
+    DEMO ONLY: Telebirr is not connected. Requests do not move money,
+    create a real balance, or guarantee a payout.
+  </p>
 </main>
 
 <script type="module">
-import {initializeApp, getApp}
+import {initializeApp}
   from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import {
-  getAuth, signInAnonymously
+  getAuth, signInAnonymously, RecaptchaVerifier,
+  linkWithPhoneNumber, signInWithPhoneNumber
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, addDoc, collection,
@@ -87,7 +97,11 @@ const app = initializeApp(config, "chuBingoWallet");
 const auth = getAuth(app);
 const db = getFirestore(app);
 const $ = id => document.getElementById(id);
+
 let user = null;
+let verifier = null;
+let confirmation = null;
+let pendingPhone = "";
 
 function status(message) {
   $("status").textContent = message;
@@ -97,51 +111,183 @@ function validPhone(phone) {
   return /^\+251[0-9]{9}$/.test(phone);
 }
 
-async function start() {
-  if (!auth.currentUser) await signInAnonymously(auth);
-  user = auth.currentUser;
-
-  const profile = await getDoc(doc(db, "profiles", user.uid));
-  if (profile.exists()) $("phone").value = profile.data().phone || "";
-
-  await history();
+function setWalletEnabled(enabled) {
+  $("depositBtn").disabled = !enabled;
+  $("withdrawBtn").disabled = !enabled;
 }
 
-async function savePhone() {
+function getPhoneNumber() {
+  return auth.currentUser?.phoneNumber || "";
+}
+
+async function start() {
+  // Preserve the existing anonymous UID where possible so that
+  // existing room-linked identity and wallet history aren't discarded.
+  if (!auth.currentUser) {
+    await signInAnonymously(auth);
+  }
+  user = auth.currentUser;
+
+  if (user && !user.isAnonymous && user.phoneNumber) {
+    $("phone").value = user.phoneNumber;
+    $("phoneState").textContent =
+      "Phone verified: " + user.phoneNumber;
+    setWalletEnabled(true);
+  } else {
+    setWalletEnabled(false);
+    $("phoneState").textContent =
+      "Verify your phone to enable demo wallet requests.";
+  }
+
+  try {
+    if (user && !user.isAnonymous && user.phoneNumber) {
+      const ref = doc(db, "profiles", user.uid);
+      const profile = await getDoc(ref);
+
+      if (!profile.exists() ||
+          profile.data().phone !== user.phoneNumber ||
+          profile.data().phoneVerified !== true) {
+        await setDoc(ref, {
+          phone: user.phoneNumber,
+          phoneVerified: true,
+          updatedAt: serverTimestamp()
+        }, {merge: true});
+      }
+    }
+    await history();
+  } catch (e) {
+    status("Account setup/history error: " + e.message);
+  }
+}
+
+function getVerifier() {
+  if (!verifier) {
+    verifier = new RecaptchaVerifier(
+      auth,
+      "recaptcha-container",
+      {size: "normal"}
+    );
+  }
+  return verifier;
+}
+
+async function sendCode() {
   const phone = $("phone").value.trim();
+
   if (!validPhone(phone)) {
     status("Enter a number like +251912345678.");
     return;
   }
 
-  await setDoc(doc(db, "profiles", user.uid), {
-    phone,
-    phoneVerified: false,
-    updatedAt: serverTimestamp()
-  }, {merge: true});
+  $("sendCode").disabled = true;
+  try {
+    const appVerifier = getVerifier();
 
-  status("Phone number saved as UNVERIFIED.");
+    // If this browser already has an anonymous account, link the
+    // verified phone to it rather than intentionally creating a new UID.
+    if (auth.currentUser?.isAnonymous) {
+      confirmation = await linkWithPhoneNumber(
+        auth.currentUser, phone, appVerifier
+      );
+    } else {
+      confirmation = await signInWithPhoneNumber(
+        auth, phone, appVerifier
+      );
+    }
+
+    pendingPhone = phone;
+    status("SMS code sent. Enter the code and press Verify phone number.");
+  } catch (e) {
+    status("Could not send code: " + e.message +
+      "\nCheck authorized domains, SMS settings, quota and reCAPTCHA.");
+    if (verifier) {
+      try { verifier.clear(); } catch (_) {}
+      verifier = null;
+    }
+  } finally {
+    $("sendCode").disabled = false;
+  }
+}
+
+async function verifyCode() {
+  const code = $("smsCode").value.trim();
+
+  if (!confirmation) {
+    status("First press Send verification code.");
+    return;
+  }
+  if (!code) {
+    status("Enter the SMS code you received.");
+    return;
+  }
+
+  $("verifyCode").disabled = true;
+  try {
+    const result = await confirmation.confirm(code);
+    user = result.user;
+    const verifiedPhone = user.phoneNumber;
+
+    if (!verifiedPhone || verifiedPhone !== pendingPhone) {
+      throw new Error("Verified phone number does not match.");
+    }
+
+    await setDoc(doc(db, "profiles", user.uid), {
+      phone: verifiedPhone,
+      phoneVerified: true,
+      updatedAt: serverTimestamp()
+    }, {merge: true});
+
+    $("phone").value = verifiedPhone;
+    $("phoneState").textContent = "Phone verified: " + verifiedPhone;
+    $("smsCode").value = "";
+    confirmation = null;
+    pendingPhone = "";
+    setWalletEnabled(true);
+
+    status("Phone verified successfully. Demo requests are available.");
+    await history();
+  } catch (e) {
+    status("Verification failed: " + e.message);
+  } finally {
+    $("verifyCode").disabled = false;
+  }
+}
+
+async function requireVerifiedPhone() {
+  user = auth.currentUser;
+  if (!user || user.isAnonymous || !user.phoneNumber) {
+    throw new Error("Verify your phone number before submitting requests.");
+  }
+
+  const profile = await getDoc(doc(db, "profiles", user.uid));
+  if (!profile.exists() ||
+      profile.data().phoneVerified !== true ||
+      profile.data().phone !== user.phoneNumber) {
+    throw new Error("Verified phone profile missing. Verify your phone again.");
+  }
 }
 
 async function requestMoney(type) {
+  await requireVerifiedPhone();
+
   const amount = Number(
     $(type === "deposit" ? "depositAmount" : "withdrawAmount").value
   );
   const phone = type === "withdraw"
     ? $("payoutPhone").value.trim()
-    : $("phone").value.trim();
+    : auth.currentUser.phoneNumber;
 
   if (!Number.isFinite(amount) || amount < 1 || amount > 100000) {
     status("Enter an amount between 1 and 100000 ETB.");
     return;
   }
   if (!validPhone(phone)) {
-    status("Enter a valid Ethiopian number like +251959607451.");
+    status("Enter a valid Ethiopian number like +251912345678.");
     return;
   }
 
   await addDoc(collection(db, "walletRequests"), {
-    uid: user.uid,
+    uid: auth.currentUser.uid,
     type,
     amount,
     phone,
@@ -155,6 +301,12 @@ async function requestMoney(type) {
 }
 
 async function history() {
+  user = auth.currentUser;
+  if (!user) {
+    $("history").textContent = "Sign in to view request history.";
+    return;
+  }
+
   const result = await getDocs(query(
     collection(db, "walletRequests"),
     where("uid", "==", user.uid)
@@ -172,14 +324,19 @@ async function history() {
     const x = d.data();
     const item = document.createElement("p");
     item.textContent =
-      `${x.type.toUpperCase()} — ${x.amount} ETB — DEMO ONLY`;
+      `${String(x.type).toUpperCase()} — ${x.amount} ETB — DEMO ONLY`;
     root.appendChild(item);
   });
 }
 
-$("savePhone").addEventListener("click", async () => {
-  try { await savePhone(); }
-  catch (e) { status("Could not save phone: " + e.message); }
+$("sendCode").addEventListener("click", async () => {
+  try { await sendCode(); }
+  catch (e) { status("Could not send code: " + e.message); }
+});
+
+$("verifyCode").addEventListener("click", async () => {
+  try { await verifyCode(); }
+  catch (e) { status("Could not verify phone: " + e.message); }
 });
 
 $("depositBtn").addEventListener("click", async () => {
@@ -193,8 +350,12 @@ $("withdrawBtn").addEventListener("click", async () => {
 });
 
 $("refresh").addEventListener("click", async () => {
-  try { await history(); status("History refreshed."); }
-  catch (e) { status("Could not load history: " + e.message); }
+  try {
+    await history();
+    status("History refreshed.");
+  } catch (e) {
+    status("Could not load history: " + e.message);
+  }
 });
 
 start().catch(e => status(
