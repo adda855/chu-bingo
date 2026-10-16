@@ -1,363 +1,447 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CHU Bingo — Account & Wallet</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#0b1238;color:white;font-family:Arial,sans-serif}
-header{padding:20px;text-align:center;background:#11194a;font-size:22px;font-weight:bold}
-main{max-width:650px;margin:auto;padding:16px}
-.panel{background:#171f59;padding:20px;border-radius:14px;margin:15px 0}
-input,button{width:100%;padding:13px;margin:7px 0;border:0;border-radius:8px;font-size:16px}
-button{background:#ffd32a;font-weight:bold;cursor:pointer}
-button:disabled{opacity:.5;cursor:not-allowed}
-.note{color:#dce2ff;line-height:1.5;font-size:14px}
-.status{white-space:pre-wrap;line-height:1.5;overflow-wrap:anywhere}
-a{color:#ffd32a}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHU Bingo - Wallet</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #071426;
+      color: #f4f7fb;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      padding: 12px 0 20px;
+    }
+
+    header h1 {
+      color: #ffd43b;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: #aebed1;
+      font-size: 14px;
+    }
+
+    .card {
+      background: #10233c;
+      border: 1px solid #243b59;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .balance {
+      text-align: center;
+      background: linear-gradient(135deg, #16395b, #10233c);
+    }
+
+    .balance h2 {
+      font-size: 15px;
+      color: #bdcde0;
+      font-weight: normal;
+    }
+
+    #balance {
+      font-size: 36px;
+      font-weight: bold;
+      color: #ffd43b;
+      margin: 14px 0;
+      overflow-wrap: anywhere;
+    }
+
+    .label {
+      display: block;
+      margin: 14px 0 7px;
+      color: #dce7f5;
+      font-size: 14px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #38516f;
+      border-radius: 8px;
+      background: #071426;
+      color: white;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 9px;
+      padding: 13px;
+      margin-top: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .deposit {
+      background: #ffd43b;
+      color: #152033;
+    }
+
+    .withdraw {
+      background: #24486b;
+      color: white;
+      border: 1px solid #52708f;
+    }
+
+    .secondary {
+      background: #1a304b;
+      color: #e7eef8;
+      border: 1px solid #38516f;
+    }
+
+    button:hover { opacity: 0.88; }
+
+    .notice {
+      border-left: 4px solid #ffd43b;
+      padding: 12px;
+      background: #172a41;
+      color: #e1e9f4;
+      font-size: 13px;
+      line-height: 1.6;
+      border-radius: 5px;
+    }
+
+    .message {
+      display: none;
+      padding: 12px;
+      margin-top: 12px;
+      border-radius: 8px;
+      background: #193b35;
+      color: #b9f5d8;
+      overflow-wrap: anywhere;
+    }
+
+    .history-item {
+      padding: 12px 0;
+      border-bottom: 1px solid #2a405b;
+      font-size: 14px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .history-item:last-child { border-bottom: 0; }
+
+    .positive { color: #78e6a6; }
+    .negative { color: #ff9b9b; }
+
+    .small {
+      color: #9fb1c8;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      color: #8fa2ba;
+      font-size: 12px;
+      padding: 10px;
+    }
+  </style>
 </head>
 <body>
-<header>🎱 CHU Bingo — Account & Wallet</header>
-<main>
-  <p><a href="./">← Return to Bingo</a></p>
+  <div class="container">
 
-  <section class="panel">
-    <h2>Verify your phone</h2>
-    <p class="note">
-      Enter your Ethiopian number in international format.
-      Firebase will send an SMS verification code. SMS availability,
-      quotas and charges may apply.
-    </p>
-    <input id="phone" type="tel" placeholder="+251912345678"
-      autocomplete="tel" maxlength="13">
-    <div id="recaptcha-container"></div>
-    <button id="sendCode">Send verification code</button>
-    <input id="smsCode" type="text" inputmode="numeric"
-      autocomplete="one-time-code" placeholder="SMS verification code">
-    <button id="verifyCode">Verify phone number</button>
-    <p id="phoneState" class="note">Phone verification required.</p>
-  </section>
+    <header>
+      <h1>🎱 CHU BINGO</h1>
+      <div class="subtitle">Player Wallet</div>
+    </header>
 
-  <section class="panel">
-    <h2>Deposit (ETB)</h2>
-    <p class="note">real cash request only. payment will be taken.</p>
-    <input id="depositAmount" type="number" min="1" max="100000"
-      step="1" placeholder="Deposit amount in ETB">
-    <button id="depositBtn" disabled>Submit realcash deposit request</button>
-  </section>
+    <div class="card balance">
+      <h2>Your Demo Balance</h2>
+      <div id="balance">1000.00</div>
+      <div class="subtitle">Virtual demo credits only — not ETB</div>
+    </div>
 
-  <section class="panel">
-    <h2>Withdraw (ETB)</h2>
-    <p class="note">real cash request only. money will be sent.</p>
-    <input id="withdrawAmount" type="number" min="1" max="100000"
-      step="1" placeholder="Withdrawal amount in ETB">
-    <input id="payoutPhone" type="tel" maxlength="13"
-      placeholder="+251959607451 (payout phone)">
-    <button id="withdrawBtn" enabled>Submit real cash withdrawal request</button>
-  </section>
+    <div class="card">
+      <h3>💳 Demo Deposit</h3>
+      <p class="small">
+        Add virtual credits to test the wallet. This does not make a real payment.
+      </p>
 
-  <section class="panel">
-    <h2>My request history</h2>
-    <button id="refresh">Refresh history</button>
-    <div id="history" class="note">Loading…</div>
-  </section>
+      <label class="label" for="depositAmount">Amount of demo credits</label>
+      <input id="depositAmount" type="number" min="1" max="100000"
+             step="1" placeholder="Enter amount">
 
-  <p id="status" class="status" role="status" aria-live="polite"></p>
-  <p class="note">
-    real cash ONLY: Telebirr is  connected. Requests  move money,
-    create a real balance, or guarantee a payout.
-  </p>
-</main>
+      <button class="deposit" id="depositBtn" type="button">
+        Add Demo Credits
+      </button>
+    </div>
 
-<script type="module">
-import {initializeApp}
-  from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-import {
-  getAuth, signInAnonymously, RecaptchaVerifier,
-  linkWithPhoneNumber, signInWithPhoneNumber
-} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, setDoc, addDoc, collection,
-  query, where, getDocs, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+    <div class="card">
+      <h3>🏧 Demo Withdrawal</h3>
+      <p class="small">
+        Test a simulated withdrawal request using virtual credits. No money is sent.
+      </p>
 
-const config = {
-  apiKey: "AIzaSyD42JZbRUjqVw0sqEO5aVA3HSdNQliB58o",
-  authDomain: "chubingo.firebaseapp.com",
-  projectId: "chubingo",
-  storageBucket: "chubingo.firebasestorage.app",
-  messagingSenderId: "420369208507",
-  appId: "1:420369208507:web:482edd0a65c65d06b6859e",
-  measurementId: "G-VCZR013WT4"
-};
+      <label class="label" for="withdrawAmount">Amount of demo credits</label>
+      <input id="withdrawAmount" type="number" min="1" max="100000"
+             step="1" placeholder="Enter amount">
 
-const app = initializeApp(config, "chuBingoWallet");
-const auth = getAuth(app);
-const db = getFirestore(app);
-const $ = id => document.getElementById(id);
+      <label class="label" for="paymentMethod">Payment method (demo only)</label>
+      <select id="paymentMethod">
+        <option value="Telebirr demo">Telebirr (demo only)</option>
+        <option value="Bank demo">Bank transfer (demo only)</option>
+      </select>
 
-let user = null;
-let verifier = null;
-let confirmation = null;
-let pendingPhone = "";
+      <label class="label" for="phone">Phone number (optional demo field)</label>
+      <input id="phone" type="tel" maxlength="20"
+             placeholder="Example: 09XXXXXXXX">
 
-function status(message) {
-  $("status").textContent = message;
-}
+      <button class="withdraw" id="withdrawBtn" type="button">
+        Create Demo Withdrawal Request
+      </button>
+    </div>
 
-function validPhone(phone) {
-  return /^\+251[0-9]{9}$/.test(phone);
-}
+    <div id="message" class="message" role="status"></div>
 
-function setWalletEnabled(enabled) {
-  $("depositBtn").enabled = !enabled;
-  $("withdrawBtn").enabled = !enabled;
-}
+    <div class="card">
+      <h3>📜 Wallet History</h3>
+      <div id="history">
+        <p class="small">Your demo transactions will appear here.</p>
+      </div>
+      <button class="secondary" id="resetBtn" type="button">
+        Reset Demo Wallet
+      </button>
+      <p class="small">
+        Resetting clears this browser's demo balance and transaction history.
+      </p>
+    </div>
 
-async function start() {
-  if (!auth.currentUser) {
-    await signInAnonymously(auth);
-  }
+    <div class="notice">
+      <strong>Important:</strong> This is a local demo wallet. It stores its
+      information in this browser only and is not shared with other players.
+      Telebirr is not connected. Deposits and withdrawals do not move real
+      money. Real-money transfers must remain disabled until the required
+      licence and payment-provider authorization are confirmed.
+    </div>
 
-  user = auth.currentUser;
+    <footer>
+      CHU Bingo · Demo Wallet · No real-money transactions
+    </footer>
 
-  if (!user.isAnonymous && user.phoneNumber) {
-    $("phone").value = user.phoneNumber;
-    $("phoneState").textContent =
-      "Phone verified: " + user.phoneNumber;
-    setWalletEnabled(true);
-  } else {
-    setWalletEnabled(false);
-    $("phoneState").textContent =
-      "Verify your phone to enable real cash wallet requests.";
-  }
+  </div>
 
-  try {
-    if (!user.isAnonymous && user.phoneNumber) {
-      await setDoc(doc(db, "profiles", user.uid), {
-        phone: user.phoneNumber,
-        phoneVerified: true,
-        updatedAt: serverTimestamp()
-      }, {merge: true});
-    }
-    await history();
-  } catch (e) {
-    status("Account setup/history error: " + e.message);
-  }
-}
+  <script>
+    (function () {
+      "use strict";
 
-function getVerifier() {
-  if (!verifier) {
-    verifier = new RecaptchaVerifier(
-      auth,
-      "recaptcha-container",
-      {size: "normal"}
-    );
-  }
-  return verifier;
-}
+      const BALANCE_KEY = "chuBingoDemoWalletBalance";
+      const HISTORY_KEY = "chuBingoDemoWalletHistory";
 
-async function sendCode() {
-  const phone = $("phone").value.trim();
+      let balance = readBalance();
+      let history = readHistory();
 
-  if (!validPhone(phone)) {
-    status("Enter a number like +251959607451.");
-    return;
-  }
+      const balanceElement = document.getElementById("balance");
+      const historyElement = document.getElementById("history");
+      const messageElement = document.getElementById("message");
 
-  $("sendCode").enabled = true;
+      function readBalance() {
+        try {
+          const saved = localStorage.getItem(BALANCE_KEY);
+          if (saved === null) return 1000;
+          const number = Number(saved);
+          return Number.isFinite(number) && number >= 0 ? number : 1000;
+        } catch (error) {
+          return 1000;
+        }
+      }
 
-  try {
-    const appVerifier = getVerifier();
+      function readHistory() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+          return Array.isArray(saved) ? saved : [];
+        } catch (error) {
+          return [];
+        }
+      }
 
-    if (auth.currentUser && auth.currentUser.isAnonymous) {
-      confirmation = await linkWithPhoneNumber(
-        auth.currentUser, phone, appVerifier
-      );
-    } else {
-      confirmation = await signInWithPhoneNumber(
-        auth, phone, appVerifier
-      );
-    }
+      function saveData() {
+        try {
+          localStorage.setItem(BALANCE_KEY, String(balance));
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        } catch (error) {
+          showMessage(
+            "Browser storage is unavailable. Your changes may not be saved.",
+            true
+          );
+        }
+      }
 
-    pendingPhone = phone;
-    status("SMS code sent. Enter it and press Verify phone number.");
-  } catch (e) {
-    status("Could send code: " + e.message +
-      "\nCheck authorized domains, SMS settings, quota and reCAPTCHA.");
+      function showMessage(message, isError) {
+        messageElement.textContent = message;
+        messageElement.style.display = "block";
+        messageElement.style.background = isError ? "#49272d" : "#193b35";
+        messageElement.style.color = isError ? "#ffd0d0" : "#b9f5d8";
+      }
 
-    if (verifier) {
-      try { verifier.clear(); } catch (_) {}
-      verifier = null;
-    }
-  } finally {
-    $("sendCode").disabled = false;
-  }
-}
+      function hideMessage() {
+        messageElement.style.display = "none";
+      }
 
-async function verifyCode() {
-  const code = $("smsCode").value.trim();
+      function money(amount) {
+        return Number(amount).toFixed(2);
+      }
 
-  if (!confirmation) {
-    status("First press Send verification code.");
-    return;
-  }
+      function addHistory(type, amount, details) {
+        history.unshift({
+          type: type,
+          amount: amount,
+          details: details,
+          date: new Date().toLocaleString()
+        });
 
-  if (!code) {
-    status("Enter the SMS code you received.");
-    return;
-  }
+        if (history.length > 100) {
+          history = history.slice(0, 100);
+        }
+      }
 
-  $("verifyCode").disabled = true;
+      function render() {
+        balanceElement.textContent = money(balance);
 
-  try {
-    const result = await confirmation.confirm(code);
-    user = result.user;
-    const verifiedPhone = user.phoneNumber;
+        if (history.length === 0) {
+          historyElement.textContent = "";
+          const empty = document.createElement("p");
+          empty.className = "small";
+          empty.textContent = "No transactions yet.";
+          historyElement.appendChild(empty);
+          return;
+        }
 
-    if (!verifiedPhone || verifiedPhone !== pendingPhone) {
-      throw new Error("Verified phone number does not match.");
-    }
+        historyElement.textContent = "";
 
-    await setDoc(doc(db, "profiles", user.uid), {
-      phone: verifiedPhone,
-      phoneVerified: true,
-      updatedAt: serverTimestamp()
-    }, {merge: true});
+        history.forEach(function (item) {
+          const row = document.createElement("div");
+          row.className = "history-item";
 
-    $("phone").value = verifiedPhone;
-    $("phoneState").textContent = "Phone verified: " + verifiedPhone;
-    $("smsCode").value = "";
-    confirmation = null;
-    pendingPhone = "";
-    setWalletEnabled(true);
+          const title = document.createElement("strong");
+          title.textContent = item.type;
 
-    status("Phone verified successfully. Demo requests are available.");
-    await history();
-  } catch (e) {
-    status("Verification failed: " + e.message);
-  } finally {
-    $("verifyCode").disabled = false;
-  }
-}
+          const amount = document.createElement("div");
+          amount.className = item.amount >= 0 ? "positive" : "negative";
+          amount.textContent =
+            (item.amount >= 0 ? "+" : "") + money(item.amount) +
+            " demo credits";
 
-async function requireVerifiedPhone() {
-  user = auth.currentUser;
+          const details = document.createElement("div");
+          details.textContent = item.details || "";
 
-  if (!user || user.isAnonymous || !user.phoneNumber) {
-    throw new Error("Verify your phone number before submitting requests.");
-  }
+          const date = document.createElement("div");
+          date.className = "small";
+          date.textContent = item.date || "";
 
-  const profile = await getDoc(doc(db, "profiles", user.uid));
+          row.appendChild(title);
+          row.appendChild(amount);
+          row.appendChild(details);
+          row.appendChild(date);
+          historyElement.appendChild(row);
+        });
+      }
 
-  if (!profile.exists() ||
-      profile.data().phoneVerified !== true ||
-      profile.data().phone !== user.phoneNumber) {
-    throw new Error("Verified phone profile missing. Verify your phone again.");
-  }
-}
+      function getValidAmount(inputId) {
+        const input = document.getElementById(inputId);
+        const amount = Number(input.value);
 
-async function requestMoney(type) {
-  await requireVerifiedPhone();
+        if (
+          input.value.trim() === "" ||
+          !Number.isFinite(amount) ||
+          amount <= 0 ||
+          amount > 100000
+        ) {
+          showMessage("Enter an amount greater than 0 and no more than 100000.", true);
+          return null;
+        }
 
-  const amount = Number(
-    $(type === "deposit" ? "depositAmount" : "withdrawAmount").value
-  );
+        return Math.round(amount * 100) / 100;
+      }
 
-  const phone = type === "withdraw"
-    ? $("payoutPhone").value.trim()
-    : auth.currentUser.phoneNumber;
+      document.getElementById("depositBtn").addEventListener("click", function () {
+        hideMessage();
 
-  if (!Number.isFinite(amount) || amount < 1 || amount > 100000) {
-    status("Enter an amount between 1 and 100000 ETB.");
-    return;
-  }
+        const amount = getValidAmount("depositAmount");
+        if (amount === null) return;
 
-  if (!validPhone(phone)) {
-    status("Enter a valid Ethiopian number like +251959607451.");
-    return;
-  }
+        balance = Math.round((balance + amount) * 100) / 100;
 
-  await addDoc(collection(db, "walletRequests"), {
-    uid: auth.currentUser.uid,
-    type,
-    amount,
-    phone,
-    status: "real cash_enabled",
-    createdAt: serverTimestamp()
-  });
+        addHistory(
+          "Demo deposit",
+          amount,
+          "Virtual credits added locally. No real payment received."
+        );
 
-  status("real cash request recorded.  MONEY WAS TRANSFERRED.");
-  $(type === "deposit" ? "depositAmount" : "withdrawAmount").value = "";
-  await history();
-}
+        saveData();
+        render();
+        document.getElementById("depositAmount").value = "";
 
-async function history() {
-  user = auth.currentUser;
+        showMessage("Demo credits added successfully. No real money was received.", false);
+      });
 
-  if (!user) {
-    $("history").textContent = "Sign in to view request history.";
-    return;
-  }
+      document.getElementById("withdrawBtn").addEventListener("click", function () {
+        hideMessage();
 
-  const result = await getDocs(query(
-    collection(db, "walletRequests"),
-    where("uid", "==", user.uid)
-  ));
+        const amount = getValidAmount("withdrawAmount");
+        if (amount === null) return;
 
-  const root = $("history");
-  root.replaceChildren();
+        if (amount > balance) {
+          showMessage("Insufficient demo credits. Your balance is " + money(balance) + ".", true);
+          return;
+        }
 
-  if (result.empty) {
-    root.textContent = "No requests yet.";
-    return;
-  }
+        const method = document.getElementById("paymentMethod").value;
+        const phone = document.getElementById("phone").value.trim();
 
-  result.docs.forEach(d => {
-    const x = d.data();
-    const item = document.createElement("p");
-    item.textContent =
-      `${String(x.type).toUpperCase()} — ${x.amount} ETB — real cash ONLY`;
-    root.appendChild(item);
-  });
-}
+        balance = Math.round((balance - amount) * 100) / 100;
 
-$("sendCode").addEventListener("click", async () => {
-  try { await sendCode(); }
-  catch (e) { status("Could not send code: " + e.message); }
-});
+        const details = "Simulated request via " + method +
+          (phone ? ". Demo phone: " + phone : "") +
+          ". No real payment or payout was made.";
 
-$("verifyCode").addEventListener("click", async () => {
-  try { await verifyCode(); }
-  catch (e) { status("Could not verify phone: " + e.message); }
-});
+        addHistory("Demo withdrawal request", -amount, details);
 
-$("depositBtn").addEventListener("click", async () => {
-  try { await requestMoney("deposit"); }
-  catch (e) { status("Could not save request: " + e.message); }
-});
+        saveData();
+        render();
+        document.getElementById("withdrawAmount").value = "";
 
-$("withdrawBtn").addEventListener("click", async () => {
-  try { await requestMoney("withdraw"); }
-  catch (e) { status("Could not save request: " + e.message); }
-});
+        showMessage(
+          "Demo withdrawal request recorded in this browser only. No ETB was sent and no payout will occur.",
+          false
+        );
+      });
 
-$("refresh").addEventListener("click", async () => {
-  try {
-    await history();
-    status("History refreshed.");
-  } catch (e) {
-    status("Could not load history: " + e.message);
-  }
-});
+      document.getElementById("resetBtn").addEventListener("click", function () {
+        const confirmed = window.confirm(
+          "Reset the demo wallet to 1000 credits and erase its local history?"
+        );
 
-start().catch(e => status(
-  "Setup failed: " + e.message +
-  "\nCheck Firebase Authentication and Firestore rules."
-));
-</script>
+        if (!confirmed) return;
+
+        balance = 1000;
+        history = [];
+        saveData();
+        render();
+        showMessage("Demo wallet reset to 1000 credits.", false);
+      });
+
+      render();
+    })();
+  </script>
 </body>
 </html>
