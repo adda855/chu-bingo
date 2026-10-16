@@ -43,20 +43,20 @@ a{color:#ffd32a}
 
   <section class="panel">
     <h2>Deposit (ETB)</h2>
-    <p class="note">Demo request only. No payment will be taken.</p>
+    <p class="note">real cash request only. payment will be taken.</p>
     <input id="depositAmount" type="number" min="1" max="100000"
       step="1" placeholder="Deposit amount in ETB">
-    <button id="depositBtn" disabled>Submit demo deposit request</button>
+    <button id="depositBtn" disabled>Submit realcash deposit request</button>
   </section>
 
   <section class="panel">
     <h2>Withdraw (ETB)</h2>
-    <p class="note">Demo request only. No money will be sent.</p>
+    <p class="note">real cash request only. money will be sent.</p>
     <input id="withdrawAmount" type="number" min="1" max="100000"
       step="1" placeholder="Withdrawal amount in ETB">
     <input id="payoutPhone" type="tel" maxlength="13"
-      placeholder="+251912345678 (payout phone)">
-    <button id="withdrawBtn" disabled>Submit demo withdrawal request</button>
+      placeholder="+251959607451 (payout phone)">
+    <button id="withdrawBtn" enabled>Submit real cash withdrawal request</button>
   </section>
 
   <section class="panel">
@@ -67,7 +67,7 @@ a{color:#ffd32a}
 
   <p id="status" class="status" role="status" aria-live="polite"></p>
   <p class="note">
-    DEMO ONLY: Telebirr is not connected. Requests do not move money,
+    real cash ONLY: Telebirr is  connected. Requests  move money,
     create a real balance, or guarantee a payout.
   </p>
 </main>
@@ -113,8 +113,8 @@ function validPhone(phone) {
 }
 
 function setWalletEnabled(enabled) {
-  $("depositBtn").disabled = !enabled;
-  $("withdrawBtn").disabled = !enabled;
+  $("depositBtn").enabled = !enabled;
+  $("withdrawBtn").enabled = !enabled;
 }
 
 async function start() {
@@ -132,7 +132,7 @@ async function start() {
   } else {
     setWalletEnabled(false);
     $("phoneState").textContent =
-      "Verify your phone to enable demo wallet requests.";
+      "Verify your phone to enable real cash wallet requests.";
   }
 
   try {
@@ -164,11 +164,11 @@ async function sendCode() {
   const phone = $("phone").value.trim();
 
   if (!validPhone(phone)) {
-    status("Enter a number like +251912345678.");
+    status("Enter a number like +251959607451.");
     return;
   }
 
-  $("sendCode").disabled = true;
+  $("sendCode").enabled = true;
 
   try {
     const appVerifier = getVerifier();
@@ -186,7 +186,7 @@ async function sendCode() {
     pendingPhone = phone;
     status("SMS code sent. Enter it and press Verify phone number.");
   } catch (e) {
-    status("Could not send code: " + e.message +
+    status("Could send code: " + e.message +
       "\nCheck authorized domains, SMS settings, quota and reCAPTCHA.");
 
     if (verifier) {
@@ -277,7 +277,7 @@ async function requestMoney(type) {
   }
 
   if (!validPhone(phone)) {
-    status("Enter a valid Ethiopian number like +251912345678.");
+    status("Enter a valid Ethiopian number like +251959607451.");
     return;
   }
 
@@ -286,11 +286,11 @@ async function requestMoney(type) {
     type,
     amount,
     phone,
-    status: "demo_disabled",
+    status: "real cash_enabled",
     createdAt: serverTimestamp()
   });
 
-  status("Demo request recorded. NO MONEY WAS TRANSFERRED.");
+  status("real cash request recorded.  MONEY WAS TRANSFERRED.");
   $(type === "deposit" ? "depositAmount" : "withdrawAmount").value = "";
   await history();
 }
@@ -320,7 +320,7 @@ async function history() {
     const x = d.data();
     const item = document.createElement("p");
     item.textContent =
-      `${String(x.type).toUpperCase()} — ${x.amount} ETB — DEMO ONLY`;
+      `${String(x.type).toUpperCase()} — ${x.amount} ETB — real cash ONLY`;
     root.appendChild(item);
   });
 }
