@@ -432,7 +432,7 @@ function openWallet(){
   $("entryPanel").classList.add("hidden");
   $("roomPanel").classList.add("hidden");
   $("walletPanel").classList.remove("hidden");
-  $("walletAccountState").textContent=user?"real cash account ready. No SMS verification.":"Connecting to demo account…";
+  $("walletAccountState").textContent=user?"real cash account ready. No SMS verification.":"Connecting to real cash account…";
   loadWalletHistory().catch(e=>walletStatus("Could not load history: "+friendlyError(e)));
 }
 function closeWallet(){
@@ -442,7 +442,7 @@ function closeWallet(){
 }
 function walletStatus(message){$("walletStatus").textContent=message;}
 function validWalletPhone(phone){return /^\+251[0-9]{9}$/.test(phone);}
-async function requestWalletDemo(type){
+async function requestWalletrealcash(type){
   if(!user)throw new Error("real  account is ready. Wait and try again.");
   const amount=Number($(type==="deposit"?"depositAmount":"withdrawAmount").value);
   const phone=(type==="withdraw"?$("payoutPhone"):$("contactPhone")).value.trim();
@@ -513,5 +513,186 @@ onAuthStateChanged(auth,async u=>{
   }
 });
 </script>
+  
+<!-- CHU BINGO FUTURE COMMISSION SIMULATOR — DEMO ONLY -->
+<section id="chuCommissionDemo" style="font-family:Arial,sans-serif;max-width:760px;margin:24px auto;padding:18px;border:2px solid #167d53;border-radius:14px;background:#f5fff9;color:#153d2c;">
+  <h2>💰 CHU Bingo — Commission Simulator</h2>
+  <p><strong>DEMO ONLY — No real money is earned or transferred.</strong></p>
+  <p>Estimated operator commission: <strong>10% per game</strong></p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">
+    <div style="background:white;padding:12px;border-radius:8px;">
+      <small>Demo commission total</small>
+      <h3 id="chuDemoTotal">0.00 ETB</h3>
+    </div>
+    <div style="background:white;padding:12px;border-radius:8px;">
+      <small>Games recorded</small>
+      <h3 id="chuDemoGames">0</h3>
+    </div>
+    <div style="background:white;padding:12px;border-radius:8px;">
+      <small>Latest game commission</small>
+      <h3 id="chuDemoLatest">0.00 ETB</h3>
+    </div>
+  </div>
+
+  <hr>
+  <h3>Record a demo game</h3>
+  <label for="chuDemoPot">Total amount from all players (ETB):</label>
+  <input id="chuDemoPot" type="number" min="0.01" step="0.01" placeholder="Example: 100"
+    style="box-sizing:border-box;width:100%;padding:12px;margin:8px 0;">
+  <button id="chuDemoRecord" type="button"
+    style="padding:12px;background:#167d53;color:white;border:0;border-radius:8px;cursor:pointer;">
+    Record Demo Game
+  </button>
+  <p id="chuDemoMessage" role="status"></p>
+
+  <hr>
+  <h3>🔮 Future commission estimator</h3>
+  <label for="chuDemoAverage">Average total amount per game (ETB):</label>
+  <input id="chuDemoAverage" type="number" min="0" step="0.01" value="100"
+    style="box-sizing:border-box;width:100%;padding:10px;margin:6px 0;">
+  <label for="chuDemoCount">Number of future games:</label>
+  <input id="chuDemoCount" type="number" min="0" max="1000000" step="1" value="100"
+    style="box-sizing:border-box;width:100%;padding:10px;margin:6px 0;">
+  <div style="background:white;padding:14px;border-radius:8px;margin-top:10px;">
+    <p>Estimated total from games:</p>
+    <h3 id="chuDemoProjection">1,000.00 ETB</h3>
+    <p id="chuDemoFormula">100 games × 100 ETB × 10%</p>
+  </div>
+
+  <hr>
+  <h3>📋 Demo commission history</h3>
+  <button id="chuDemoClear" type="button"
+    style="padding:9px;background:#777;color:white;border:0;border-radius:6px;cursor:pointer;">
+    Clear Demo History
+  </button>
+  <div style="overflow-x:auto;">
+    <table style="width:100%;margin-top:12px;border-collapse:collapse;background:white;">
+      <thead>
+        <tr>
+          <th style="padding:8px;border-bottom:1px solid #ccc;">Game</th>
+          <th style="padding:8px;border-bottom:1px solid #ccc;">Total (ETB)</th>
+          <th style="padding:8px;border-bottom:1px solid #ccc;">10% demo commission</th>
+        </tr>
+      </thead>
+      <tbody id="chuDemoHistory">
+        <tr><td colspan="3" style="padding:10px;">No demo games recorded yet.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="font-size:12px;color:#555;">Demo records are stored in this browser only. They are not your real wallet balance, are not synchronized to Firebase, and do not represent payable funds.</p>
+</section>
+
+<script>
+(function () {
+  const prefix = "chuBingoCommissionDemo_v1";
+  const $ = id => document.getElementById(id);
+  const money = n => Number(n).toLocaleString(undefined, {
+    minimumFractionDigits: 2, maximumFractionDigits: 2
+  }) + " ETB";
+
+  let games = [];
+  try {
+    const saved = localStorage.getItem(prefix);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) games = parsed;
+    }
+  } catch (e) {}
+
+  function save() {
+    try {
+      localStorage.setItem(prefix, JSON.stringify(games));
+    } catch (e) {
+      $("chuDemoMessage").textContent =
+        "Browser storage is unavailable. Demo records may not persist.";
+    }
+  }
+
+  function render() {
+    const total = games.reduce((sum, game) => sum + game.commission, 0);
+    $("chuDemoTotal").textContent = money(total);
+    $("chuDemoGames").textContent = games.length;
+    $("chuDemoLatest").textContent =
+      games.length ? money(games[games.length - 1].commission) : money(0);
+
+    const body = $("chuDemoHistory");
+    body.replaceChildren();
+
+    if (!games.length) {
+      const row = body.insertRow();
+      const cell = row.insertCell();
+      cell.colSpan = 3;
+      cell.textContent = "No demo games recorded yet.";
+      cell.style.padding = "10px";
+    } else {
+      games.slice().reverse().forEach(game => {
+        const row = body.insertRow();
+        [game.id, money(game.pot), money(game.commission)].forEach(value => {
+          const cell = row.insertCell();
+          cell.textContent = value;
+          cell.style.padding = "8px";
+          cell.style.borderBottom = "1px solid #eee";
+        });
+      });
+    }
+    estimate();
+  }
+
+  function estimate() {
+    const average = Number($("chuDemoAverage").value);
+    const count = Number($("chuDemoCount").value);
+    const valid = Number.isFinite(average) && average >= 0 &&
+      Number.isFinite(count) && count >= 0 &&
+      Number.isInteger(count) && count <= 1000000;
+
+    if (!valid) {
+      $("chuDemoProjection").textContent = "Enter valid values";
+      $("chuDemoFormula").textContent = "Average and game count must be non-negative.";
+      return;
+    }
+
+    $("chuDemoProjection").textContent = money(average * count * 0.10);
+    $("chuDemoFormula").textContent =
+      count + " games × " + money(average) + " × 10%";
+  }
+
+  $("chuDemoRecord").addEventListener("click", function () {
+    const pot = Number($("chuDemoPot").value);
+    if (!Number.isFinite(pot) || pot <= 0 || pot > 1000000000) {
+      $("chuDemoMessage").textContent =
+        "Enter a total game amount greater than zero.";
+      return;
+    }
+
+    games.push({
+      id: games.length ? Math.max(...games.map(g => g.id)) + 1 : 1,
+      pot: Math.round(pot * 100) / 100,
+      commission: Math.round(pot * 10) / 100
+    });
+
+    save();
+    render();
+    $("chuDemoPot").value = "";
+    $("chuDemoMessage").textContent =
+      "Demo game recorded. No real money was moved.";
+  });
+
+  $("chuDemoAverage").addEventListener("input", estimate);
+  $("chuDemoCount").addEventListener("input", estimate);
+
+  $("chuDemoClear").addEventListener("click", function () {
+    if (!confirm("Clear all commission simulator demo records in this browser?")) return;
+    games = [];
+    save();
+    render();
+    $("chuDemoMessage").textContent = "Demo history cleared.";
+  });
+
+  render();
+})();
+</script>
+<!-- END CHU BINGO COMMISSION SIMULATOR -->
+
 </body>
 </html>
