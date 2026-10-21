@@ -142,10 +142,10 @@ jobs:
               const room = roomDoc.data();
               const roomId = roomDoc.id;
               const round = String(
-                room.roundStartedAt || "unknown"
-              );
+  room.createdAt?.toMillis?.() || roomDoc.updateTime.toMillis()
+);
 
-              if (room.gameStarted === true) {
+            if (room.gameStarted === true) {
                 await notifyOnce(
                   `${roomId}_started_${round}`,
                   `🎱 CHU Bingo: Game started!\nRoom: ${roomId}`
