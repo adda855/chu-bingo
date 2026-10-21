@@ -166,40 +166,40 @@
     </header>
 
     <div class="card balance">
-      <h2>Your realBalance</h2>
+      <h2>Your demoBalance</h2>
       <div id="balance">1000.00</div>
-      <div class="subtitle">Virtual real cash credits only — ETB</div>
+      <div class="subtitle">Virtual demo credits only — ETB</div>
     </div>
 
     <div class="card">
-      <h3>💳 real cash Deposit</h3>
+      <h3>💳 demo Deposit</h3>
       <p class="small">
-        Add credits to test the wallet. This does make a real payment.
+        Add credits to test the wallet. This not does make a real payment.
       </p>
 
-      <label class="label" for="depositAmount">Amount of real cash credits</label>
+      <label class="label" for="depositAmount">Amount of demo credits</label>
       <input id="depositAmount" type="number" min="1" max="100000"
              step="1" placeholder="Enter amount">
 
       <button class="deposit" id="depositBtn" type="button">
-        Add real cash Credits
+        Add demo Credits
       </button>
     </div>
 
     <div class="card">
-      <h3>🏧 real cash Withdrawal</h3>
+      <h3>🏧demo Withdrawal</h3>
       <p class="small">
-        Test a simulated withdrawal request using cash credits. money is sent.
+        Test a simulated withdrawal request using cash credits.no money is sent.
       </p>
 
-      <label class="label" for="withdrawAmount">Amount of real cash credits</label>
+      <label class="label" for="withdrawAmount">Amount of demo credits</label>
       <input id="withdrawAmount" type="number" min="1" max="100000"
              step="1" placeholder="Enter amount">
 
-      <label class="label" for="paymentMethod">Payment method (real cash only)</label>
+      <label class="label" for="paymentMethod">Payment method (demo only)</label>
       <select id="paymentMethod">
-        <option value="Telebirr real cash">Telebirr (real cash only)</option>
-        <option value="Bank real cash">Bank transfer (real cash only)</option>
+        <option value="Telebirr demo">Telebirr (demo only)</option>
+        <option value="Bank demo">Bank transfer (demo only)</option>
       </select>
 
       <label class="label" for="phone">Phone number (optional real cash field)</label>
@@ -207,7 +207,7 @@
              placeholder="Example: 09XXXXXXXX">
 
       <button class="withdraw" id="withdrawBtn" type="button">
-        Create real cash Withdrawal Request
+        Create demo Withdrawal Request
       </button>
     </div>
 
@@ -216,26 +216,26 @@
     <div class="card">
       <h3>📜 Wallet History</h3>
       <div id="history">
-        <p class="small">Your real cash transactions will appear here.</p>
+        <p class="small">Your demo transactions will appear here.</p>
       </div>
       <button class="secondary" id="resetBtn" type="button">
-       do not Reset real cash Wallet
+       Reset demo Wallet
       </button>
       <p class="small">
-        Resetting clears this browser's real cash balance and transaction history.
+        Resetting clears this browser's demo balance and transaction history.
       </p>
     </div>
 
     <div class="notice">
       <strong>Important:</strong> This is a local real cash wallet. It stores its
       information in this browser and is shared with other players.
-      Telebirr is connected. Deposits and withdrawals move real
-      money. Real-money transfers must remain enabled the required
+      Telebirr is connected. Deposits and withdrawals move demo
+      money. no Real-money transfers must remain enabled the required
       licence and payment-provider authorization are confirmed.
     </div>
 
     <footer>
-      CHU Bingo · real cash Wallet ·real-money transactions
+      CHU Bingo · demo Wallet ·no real-money transactions
     </footer>
 
   </div>
@@ -244,8 +244,8 @@
     (function () {
       "use strict";
 
-      const BALANCE_KEY = "chuBingorealcashWalletBalance";
-      const HISTORY_KEY = "chuBingorealcashWalletHistory";
+      const BALANCE_KEY = "chuBingodemoWalletBalance";
+      const HISTORY_KEY = "chuBingodemoWalletHistory";
 
       let balance = readBalance();
       let history = readHistory();
@@ -384,14 +384,14 @@
         addHistory(
           "Demo deposit",
           amount,
-          "real cash credits added locally.real payment received."
+          "demo credits added locally.no real payment received."
         );
 
         saveData();
         render();
         document.getElementById("depositAmount").value = "";
 
-        showMessage("real cash credits added successfully. real money was received.", false);
+        showMessage("demo credits added successfully. demo was received.", false);
       });
 
       document.getElementById("withdrawBtn").addEventListener("click", function () {
@@ -401,7 +401,7 @@
         if (amount === null) return;
 
         if (amount > balance) {
-          showMessage("Insufficient real cash credits. Your balance is " + money(balance) + ".", true);
+          showMessage("Insufficient demo credits. Your balance is " + money(balance) + ".", true);
           return;
         }
 
@@ -421,14 +421,14 @@
         document.getElementById("withdrawAmount").value = "";
 
         showMessage(
-          "real cash withdrawal request recorded in this browser only.ETB was sent and payout will occur.",
+          "demo withdrawal request recorded in this browser only.No ETB was sent and payout will occur.",
           false
         );
       });
 
       document.getElementById("resetBtn").addEventListener("click", function () {
         const confirmed = window.confirm(
-          "Not reset the real cash wallet to 1000 credits and erase its local history?"
+          "reset demo wallet to 1000 credits and erase its local history?"
         );
 
         if (!confirmed) return;
@@ -437,7 +437,7 @@
         history = [];
         saveData();
         render();
-        showMessage("Not reset real cash wallet to 1000 credits.", false);
+        showMessage("reset demo wallet to 1000 credits.", false);
       });
 
       render();
