@@ -106,32 +106,32 @@ a{color:#ffd32a}
 <button id="walletBackBtn" class="secondary">← Back to Bingo</button>
 </div>
 <h2>💳 CHU Bingo Wallet</h2>
-<p id="walletAccountState" class="small">Checking real cash account…</p>
+<p id="walletAccountState" class="small">Checking demo account…</p>
 
 <div class="panel">
 <h3>Deposit request (ETB)</h3>
-<p class="small">real cash ONLY. This records a request. payment is collected and balance is credited.</p>
+<p class="small">real cash ONLY. This records a request. no payment is collected and balance is credited.</p>
 <input id="depositAmount" type="number" min="1" max="100000" step="1" placeholder="Amount in ETB">
 <input id="contactPhone" type="tel" maxlength="13" placeholder="Optional phone, e.g. +251902520450">
-<button id="depositBtn">Submit real cash deposit request</button>
+<button id="depositBtn">Submit demo deposit request</button>
 </div>
 
 <div class="panel">
 <h3>Withdrawal request (ETB)</h3>
-<p class="small">real cash ONLY. money is sent and payout is promised.</p>
+<p class="small">demo ONLY. no money is sent and payout is promised.</p>
 <input id="withdrawAmount" type="number" min="1" max="100000" step="1" placeholder="Amount in ETB">
 <input id="payoutPhone" type="tel" maxlength="13" placeholder="Payout phone, e.g.  +251902520450">
-<button id="withdrawBtn">Submit real cash withdrawal request</button>
+<button id="withdrawBtn">Submit demo withdrawal request</button>
 </div>
 
 <div class="panel">
-<h3>My real csh request history</h3>
+<h3>My demo request history</h3>
 <button id="refreshWallet" class="secondary">Refresh history</button>
 <div id="walletHistory" class="small">Loading…</div>
 </div>
 
 <p id="walletStatus" class="status"></p>
-<p class="small">real cash ONLY: Telebirr is connected. Requests move money, create a real balance, or guarantee a payout. Real deposits and withdrawals remain disabled pending required authorization.</p>
+<p class="small">demo ONLY: Telebirr is no connected. no Requests move money, create a demo balance, or guarantee a payout. Real deposits and withdrawals remain disabled pending required authorization.</p>
 </section>
 </main>
 
@@ -432,14 +432,14 @@ async function leaveRoom(){
   setStatus("Left room.");
 }
 
-/* Wallet: requests only, real deposits or withdrawals. */
+/* Wallet: requests only, demo deposits or withdrawals. */
 let walletReturnToRoom=false;
 function openWallet(){
   walletReturnToRoom=!$("roomPanel").classList.contains("hidden");
   $("entryPanel").classList.add("hidden");
   $("roomPanel").classList.add("hidden");
   $("walletPanel").classList.remove("hidden");
-  $("walletAccountState").textContent=user?"real cash account ready. No SMS verification.":"Connecting to demo account…";
+  $("walletAccountState").textContent=user?"Demo account ready. No SMS verification.":"Connecting to demo account…";
   loadWalletHistory().catch(e=>walletStatus("Could not load history: "+friendlyError(e)));
 }
 function closeWallet(){
@@ -450,7 +450,7 @@ function closeWallet(){
 function walletStatus(message){$("walletStatus").textContent=message;}
 function validWalletPhone(phone){return /^\+251[0-9]{9}$/.test(phone);}
 async function requestWalletDemo(type){
-  if(!user)throw new Error("real  account is ready. Wait and try again.");
+  if(!user)throw new Error("Demo  account is ready. Wait and try again.");
   const amount=Number($(type==="deposit"?"depositAmount":"withdrawAmount").value);
   const phone=(type==="withdraw"?$("payoutPhone"):$("contactPhone")).value.trim();
   if(!Number.isFinite(amount)||amount<1||amount>100000){
@@ -460,24 +460,24 @@ async function requestWalletDemo(type){
     walletStatus("Phone must be blank or use +251 followed by 9 digits.");return;
   }
   if(type==="withdraw"&&!phone){
-    walletStatus("Enter a payout phone number for this real cash request.");return;
+    walletStatus("Enter a payout phone number for this demo request.");return;
   }
   await addDoc(collection(db,"walletRequests"),{
-    uid:user.uid,type,amount,phone,status:"real cash_enabled",createdAt:serverTimestamp()
+    uid:user.uid,type,amount,phone,status:"demo_enabled",createdAt:serverTimestamp()
   });
-  walletStatus("real cash request saved. MONEY WAS TRANSFERRED.");
+  walletStatus("demo request saved.no MONEY WAS TRANSFERRED.");
   $(type==="deposit"?"depositAmount":"withdrawAmount").value="";
   await loadWalletHistory();
 }
 async function loadWalletHistory(){
-  if(!user){$("walletHistory").textContent="real cash account  ready.";return;}
+  if(!user){$("walletHistory").textContent="demo account  ready.";return;}
   const result=await getDocs(query(collection(db,"walletRequests"),where("uid","==",user.uid)));
   const root=$("walletHistory");
   root.replaceChildren();
   if(result.empty){root.textContent="No requests yet.";return;}
   result.docs.forEach(d=>{
     const x=d.data(),item=document.createElement("p");
-    item.textContent=`${String(x.type||"request").toUpperCase()} — ${x.amount} ETB — real cash ONLY — ${x.status||"pending"}`;
+    item.textContent=`${String(x.type||"request").toUpperCase()} — ${x.amount} ETB — Demo ONLY — ${x.status||"pending"}`;
     root.appendChild(item);
   });
 }
@@ -508,7 +508,7 @@ onAuthStateChanged(auth,async u=>{
   if(u){
     user=u;
     setStatus("Signed in. Create a room or join with a code.");
-    $("walletAccountState").textContent="real cash account ready. No SMS verification.";
+    $("walletAccountState").textContent="Demo account ready. No SMS verification.";
   }else{
     try{await signInAnonymously(auth);}
     catch(e){
@@ -640,7 +640,7 @@ a{color:#ffd32a}
 </div>
 
 <p id="walletStatus" class="status"></p>
-<p class="small">DEMO ONLY: Telebirr is not connected. Requests do not move money, create a real balance, or guarantee a payout. Real deposits and withdrawals remain disabled pending required authorization.</p>
+<p class="small">DEMO ONLY: Telebirr is not connected. Requests do not move money, create a demo balance, or guarantee a payout. Real deposits and withdrawals remain disabled pending required authorization.</p>
 </section>
 </main>
 
