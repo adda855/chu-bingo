@@ -463,7 +463,7 @@ async function requestWalletDemo(type){
     walletStatus("Enter a payout phone number for this demo request.");return;
   }
   await addDoc(collection(db,"walletRequests"),{
-    uid:user.uid,type,amount,phone,status:"demo_enabled",createdAt:serverTimestamp()
+    uid:user.uid,type,amount,phone,status:"Demo_only",createdAt:serverTimestamp()
   });
   walletStatus("demo request saved.no MONEY WAS TRANSFERRED.");
   $(type==="deposit"?"depositAmount":"withdrawAmount").value="";
