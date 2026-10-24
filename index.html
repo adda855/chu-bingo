@@ -442,7 +442,7 @@ function closeWallet(){
 }
 function walletStatus(message){$("walletStatus").textContent=message;}
 function validWalletPhone(phone){return /^\+251[0-9]{9}$/.test(phone);}
-async function requestWalletdemo(type){
+async function requestWalletDemo(type){
   if(!user)throw new Error("demo  account is ready. Wait and try again.");
   const amount=Number($(type==="deposit"?"depositAmount":"withdrawAmount").value);
   const phone=(type==="withdraw"?$("payoutPhone"):$("contactPhone")).value.trim();
