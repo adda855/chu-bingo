@@ -483,7 +483,7 @@ $("depositBtn").addEventListener("click",async()=>{
   catch(e){walletStatus("Could not save real cash request: "+friendlyError(e));}
 });
 $("withdrawBtn").addEventListener("click",async()=>{
-  try{await requestWalletrealcash("withdraw");}
+  try{await requestWalletDemo("withdraw");}
   catch(e){walletStatus("Could not save demo request: "+friendlyError(e));}
 });
 $("refreshWallet").addEventListener("click",async()=>{
