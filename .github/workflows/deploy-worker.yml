@@ -1,0 +1,24 @@
+
+name: Deploy CHU Bingo Worker
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - worker.js
+      - .github/workflows/deploy-worker.yml
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Deploy Worker
+        run: npx wrangler deploy worker.js --name chu-bingo-bot --account-id "$ACCOUNT_ID"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
