@@ -19,7 +19,7 @@ export default {
         });
       }
 
-      if (!env.PAYO_API_KEY) {
+      if (!env.env.PAYO_WEBHOOK_SECRET) {
         return new Response("Webhook secret missing", {
           status: 500
         });
