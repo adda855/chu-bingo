@@ -1,7 +1,7 @@
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-
 
     // Health check
     if (request.method === "GET" && url.pathname === "/") {
@@ -11,7 +11,7 @@ export default {
       });
     }
 
-    // Payo webhook endpoint
+    // Payo callback
     if (url.pathname === "/payo/callback") {
       if (request.method !== "POST") {
         return new Response("Method not allowed", {
@@ -19,17 +19,22 @@ export default {
         });
       }
 
-      if (!env.env.PAYO_WEBHOOK_SECRET) {
+      const secret = env.PAYO_WEBHOOK_SECRET;
+
+      if (!secret) {
         return new Response("Webhook secret missing", {
           status: 500
         });
       }
 
       const body = await request.text();
+
       const signature =
         request.headers.get("x-pygate-signature") || "";
 
-      const match = signature.match(/^sha256=([a-f0-9]{64})$/i);
+      const match = signature.match(
+        /^sha256=([a-f0-9]{64})$/i
+      );
 
       if (!match) {
         return new Response("Invalid signature", {
@@ -37,11 +42,13 @@ export default {
         });
       }
 
+      // Verify HMAC SHA-256 signature.
+      // Confirm this algorithm and header with Payo's documentation.
       const encoder = new TextEncoder();
 
       const key = await crypto.subtle.importKey(
         "raw",
-        encoder.encode(env.PAYO_API_KEY),
+        encoder.encode(secret),
         {
           name: "HMAC",
           hash: "SHA-256"
@@ -56,14 +63,19 @@ export default {
         encoder.encode(body)
       );
 
-      const expected = Array.from(new Uint8Array(digest))
+      const expected = Array.from(
+        new Uint8Array(digest)
+      )
         .map(b => b.toString(16).padStart(2, "0"))
         .join("");
 
-      if (expected !== match[1].toLowerCase()) {
-        return new Response("Signature verification failed", {
-          status: 401
-        });
+      const received = match[1].toLowerCase();
+
+      if (expected !== received) {
+        return new Response(
+          "Signature verification failed",
+          { status: 401 }
+        );
       }
 
       let event;
@@ -82,17 +94,16 @@ export default {
         });
       }
 
-      console.log("Verified Payo event:", {
+      console.log("Verified Payo callback", {
         orderId: event.orderId,
-        status: event.status,
-        amount: event.amount,
-        currency: event.currency
+        status: event.status
       });
 
       return Response.json({
         received: true,
         verified: true,
-        walletUpdated: false
+        walletUpdated: false,
+        nextStep: "Server-side payment verification required"
       });
     }
 
