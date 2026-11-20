@@ -13,6 +13,100 @@ body{
 }
 .container{max-width:600px;margin:auto}
 header{text-align:center;padding:12px 0 20px}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CHU Bingo - Wallet</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;padding:20px;background:#071426;
+  color:#f4f7fb;font-family:Arial,sans-serif
+}
+.container{max-width:600px;margin:auto}
+header{text-align:center;padding:12px 0 20px}
+h1{color:#ffd43b;margin-bottom:6px}
+.subtitle,.small{color:#aebed1}
+.card{
+  background:#10233c;border:1px solid #243b59;
+  border-radius:14px;padding:20px;margin-bottom:16px
+}
+.balance{text-align:center;background:linear-gradient(135deg,#16395b,#10233c)}
+.balance h2{font-size:15px;color:#bdcde0;font-weight:normal}
+#balance{font-size:36px;font-weight:bold;color:#ffd43b;margin:14px 0}
+.status{
+  background:#49272d;color:#ffd0d0;border-radius:8px;
+  padding:14px;line-height:1.6;font-size:14px
+}
+button{
+  width:100%;padding:13px;margin-top:12px;border:0;
+  border-radius:9px;font-size:16px;font-weight:bold;
+  background:#24486b;color:white;cursor:not-allowed
+}
+.small{font-size:12px;line-height:1.6}
+footer{text-align:center;color:#8fa2ba;font-size:12px;padding:10px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🎱 CHU BINGO</h1>
+    <div class="subtitle">Player Wallet</div>
+  </header>
+
+  <div class="card balance">
+    <h2>Available ETB Balance</h2>
+    <div id="balance">Not available</div>
+    <div class="subtitle">Noverified wallet balance is connected.</div>
+  </div>
+
+  <div class="card">
+    <h3>💳 Deposits</h3>
+    <div class="status">
+      Payo payment connection is not active in this wallet yet.
+      No deposit has been received or credited.
+    </div>
+    <button disabled>Deposits unavailable</button>
+    <p class="small">
+      Do not transfer money using this screen. A payment link and
+      verified payment confirmation must be implemented first.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>🏧 Withdrawals</h3>
+    <div class="status">
+      No verified wallet balance or payout connection is available.
+      No withdrawal can currently be submitted.
+    </div>
+    <button disabled>Withdrawals unavailable</button>
+  </div>
+
+  <div class="card">
+    <h3>📜 Transaction History</h3>
+    <p class="small">
+      No verified transactions are connected to this wallet.
+      Transactions will appear here after a secure backend is implemented.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>Payment information</h3>
+    <p class="small">
+      CHU Bingo does not currently process deposits or withdrawals
+      through this page. No demo credits are displayed as real money.
+      Payment and any wagering features require the applicable
+      provider and regulatory approvals.
+    </p>
+  </div>
+
+  <footer>CHU Bingo · Wallet</footer>
+</div>
+</body>
+</html>
+
 h1{color:#ffd43b;margin-bottom:6px}
 .subtitle,.small{color:#aebed1}
 .card{
