@@ -92,39 +92,45 @@ a{color:#ffd32a}
 <div id="players" class="players"></div>
 <p class="small">Cards and calls sync through Firebase. Only the host can control the game.</p>
 </section>
-
 <section class="panel wallet-panel hidden" id="walletPanel">
-<div class="row">
-<button id="walletBackBtn" class="secondary">← Back to Bingo</button>
-</div>
-<h2>💳 CHU Bingo Wallet</h2>
-<p id="walletAccountState" class="small">Checking account…</p>
+  <div class="row">
+    <button id="walletBackBtn" class="secondary">← Back to Bingo</button>
+  </div>
 
-<div class="panel">
-<h3>Deposit request (ETB)</h3>
-<p class="small">Demo only. This records a request; no payment is collected and no balance is credited.</p>
-<input id="depositAmount" type="number" min="1" max="100000" step="1" placeholder="Amount in ETB">
-<input id="contactPhone" type="tel" maxlength="13" placeholder="Optional phone, e.g. +251902520450">
-<button id="depositBtn">Submit demo deposit request</button>
-</div>
+  <h2>💳 CHU Bingo Wallet</h2>
+  <p id="walletAccountState" class="small">Connecting to account…</p>
 
-<div class="panel">
-<h3>Withdrawal request (ETB)</h3>
-<p class="small">Demo only. No money is sent and no payout is promised.</p>
-<input id="withdrawAmount" type="number" min="1" max="100000" step="1" placeholder="Amount in ETB">
-<input id="payoutPhone" type="tel" maxlength="13" placeholder="Payout phone, e.g. +251902520450">
-<button id="withdrawBtn">Submit demo withdrawal request</button>
-</div>
+  <div class="panel">
+    <h3>Available balance</h3>
+    <div id="walletBalance" style="font-size:36px;font-weight:bold;color:#ffd32a">0.00 ETB</div>
+    <p class="small">Balance updates only after verified transactions.</p>
+  </div>
 
-<div class="panel">
-<h3>My demo request history</h3>
-<button id="refreshWallet" class="secondary">Refresh history</button>
-<div id="walletHistory" class="small">Loading…</div>
-</div>
+  <div class="panel">
+    <h3>Deposit (ETB)</h3>
+    <p class="small">Create a payment order through Payo checkout.</p>
+    <input id="depositAmount" type="number" min="1" max="100000" step="1" placeholder="Amount in ETB">
+    <button id="depositBtn">Continue to Payo payment</button>
+  </div>
 
-<p id="walletStatus" class="status"></p>
-<p class="small">Demo only: Payo and Telebirr are not connected to this wallet. Requests do not move money, create a balance, or guarantee a payout. Real deposits and withdrawals are not enabled.</p>
+  <div class="panel">
+    <h3>Withdraw (ETB)</h3>
+    <p class="small">Payout service connection is required before withdrawals can be enabled.</p>
+    <input id="withdrawAmount" type="number" min="1" max="100000" step="1" placeholder="Amount in ETB" disabled>
+    <input id="payoutPhone" type="tel" maxlength="13" placeholder="Payout phone" disabled>
+    <button id="withdrawBtn" disabled>Withdrawals unavailable</button>
+  </div>
+
+  <div class="panel">
+    <h3>Transaction history</h3>
+    <button id="refreshWallet" class="secondary">Refresh history</button>
+    <div id="walletHistory" class="small">No verified transactions loaded.</div>
+  </div>
+
+  <p id="walletStatus" class="status"></p>
+  <p class="small">Payments and balance updates require secure provider confirmation.</p>
 </section>
+
 </main>
 
 <script>
