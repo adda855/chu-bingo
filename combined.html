@@ -566,106 +566,49 @@ async function leaveRoom(){
   setStatus("Left room.");
 }
 
-/* Wallet: demo requests only. Payo is not connected here. */
-let walletReturnToRoom=false;
 
-function openWallet(){
-  walletReturnToRoom=!$("roomPanel").classList.contains("hidden");
+/* CHU Bingo Wallet */
+let walletReturnToRoom = false;
+
+function openWallet() {
+  walletReturnToRoom = !$("roomPanel").classList.contains("hidden");
 
   $("entryPanel").classList.add("hidden");
   $("roomPanel").classList.add("hidden");
   $("walletPanel").classList.remove("hidden");
 
-  $("walletAccountState").textContent=user
-    ?"Demo account ready. No SMS verification."
-    :"Connecting to demo account…";
+  $("walletAccountState").textContent = user
+    ? "Account connected. Payo payment connection is pending."
+    : "Connecting to account…";
 
-  loadWalletHistory().catch(e=>
-    walletStatus("Could not load history: "+friendlyError(e))
-  );
+  loadWalletHistory();
 }
 
-function closeWallet(){
+function closeWallet() {
   $("walletPanel").classList.add("hidden");
 
-  if(walletReturnToRoom&&roomId){
+  if (walletReturnToRoom && roomId) {
     $("roomPanel").classList.remove("hidden");
-  }else{
+  } else {
     $("entryPanel").classList.remove("hidden");
   }
 }
 
-function walletStatus(message){
-  $("walletStatus").textContent=message;
+function walletStatus(message) {
+  $("walletStatus").textContent = message;
 }
 
-function validWalletPhone(phone){
-  return /^\+251[0-9]{9}$/.test(phone);
-}
-
-async function requestWalletDemo(type){
-  if(!user)throw new Error("Wait for the demo account to connect, then try again.");
-
-  const amount=Number($(type==="deposit"?"depositAmount":"withdrawAmount").value);
-  const phone=(type==="withdraw"?$("payoutPhone"):$("contactPhone")).value.trim();
-
-  if(!Number.isFinite(amount)||amount<1||amount>100000){
-    walletStatus("Enter an amount between 1 and 100000 ETB.");
-    return;
-  }
-
-  if(phone&&!validWalletPhone(phone)){
-    walletStatus("Phone must be blank or use +251 followed by 9 digits.");
-    return;
-  }
-
-  if(type==="withdraw"&&!phone){
-    walletStatus("Enter a payout phone number for this demo request.");
-    return;
-  }
-
-  await addDoc(collection(db,"walletRequests"),{
-    uid:user.uid,
-    type,
-    amount,
-    phone,
-    status:"Demo_only",
-    createdAt:serverTimestamp()
-  });
-
-  walletStatus("Demo request saved. No money was transferred.");
-  $(type==="deposit"?"depositAmount":"withdrawAmount").value="";
-  await loadWalletHistory();
-}
-
-async function loadWalletHistory(){
-  if(!user){
-    $("walletHistory").textContent="Demo account is not connected yet.";
-    return;
-  }
-
-  const result=await getDocs(
-    query(collection(db,"walletRequests"),where("uid","==",user.uid))
+async function requestWalletDemo(type) {
+  walletStatus(
+    "Payo backend is not connected yet. No payment has been made."
   );
-
-  const root=$("walletHistory");
-  root.replaceChildren();
-
-  if(result.empty){
-    root.textContent="No requests yet.";
-    return;
-  }
-
-  result.docs.forEach(d=>{
-    const x=d.data();
-    const item=document.createElement("p");
-    item.textContent=
-      `${String(x.type||"request").toUpperCase()} — ${x.amount} ETB — Demo only — ${x.status||"pending"}`;
-    root.appendChild(item);
-  });
 }
 
-/* Button connections */
+async function loadWalletHistory() {
+  $("walletHistory").textContent =
+    "Verified transaction history will appear after the Payo backend is connected.";
+}
+
 $("walletFromEntry").addEventListener("click",openWallet);
 $("walletFromRoom").addEventListener("click",openWallet);
 $("walletBackBtn").addEventListener("click",closeWallet);
