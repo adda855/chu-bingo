@@ -604,9 +604,51 @@ async function requestWalletDemo(type) {
   );
 }
 
-async function loadWalletHistory() {
-  $("walletHistory").textContent =
-    "Verified transaction history will appear after the Payo backend is connected.";
+async function requestWalletDeposit() {
+  if (!user) {
+    walletStatus("Please wait for account connection.");
+    return;
+  }
+
+  const amount = Number($("depositAmount").value);
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    walletStatus("Enter a valid deposit amount.");
+    return;
+  }
+
+  try {
+    walletStatus("Connecting to Payo…");
+
+    const token = await user.getIdToken();
+
+    const response = await fetch(
+      "https://chu-bingo-bot.bobitesfaye600.workers.dev/payo/create-order",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+          amount: amount,
+          userId: user.uid
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.paymentUrl) {
+      throw new Error(result.error || "Payo could not create the payment.");
+    }
+
+    walletStatus("Opening Payo checkout…");
+    window.location.href = result.paymentUrl;
+
+  } catch (error) {
+    walletStatus("Payment setup failed: " + error.message);
+  }
 }
 
 $("walletFromEntry").addEventListener("click",openWallet);
