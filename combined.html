@@ -209,3 +209,513 @@ function friendlyError(e){
   if(e?.code==="auth/billing-not-enabled")return "Firebase billing is not enabled for this service.";
   return e?.message||"Unknown error";
 }
+function showRoom(){
+  $("entryPanel").classList.add("hidden");
+  $("walletPanel").classList.add("hidden");
+  $("roomPanel").classList.remove("hidden");
+  $("roomCodeLabel").textContent=roomId;
+  $("roleLabel").textContent=isHost?"You are the host.":"You joined as a player.";
+}
+
+function render(){
+  if(!roomData)return;
+  const calls=roomData.calledNumbers||[];
+  $("currentCall").textContent=calls.length
+    ?letterFor(calls[calls.length-1])+"-"+calls[calls.length-1]:"---";
+
+  $("history").replaceChildren();
+  if(!calls.length)$("history").textContent="No numbers called yet";
+  else calls.forEach(n=>{
+    const s=document.createElement("span");
+    s.textContent=letterFor(n)+"-"+n;
+    $("history").appendChild(s);
+  });
+
+  $("startBtn").disabled=!isHost||!!roomData.gameStarted||!!roomData.gameWon;
+  $("callBtn").disabled=!isHost||!roomData.gameStarted||!!roomData.gameWon||calls.length>=75;
+  $("newRoundBtn").disabled=!isHost;
+
+  const root=$("players");
+  root.replaceChildren();
+
+  playerDocs.forEach(p=>{
+    const box=document.createElement("section");
+    box.className="player";
+
+    const title=document.createElement("h3");
+    title.textContent=p.name+(p.uid===user?.uid?" (you)":"");
+    box.appendChild(title);
+
+    const id=document.createElement("div");
+    id.className="cardid";
+    id.textContent="CARD NUMBER: "+p.cardId;
+    box.appendChild(id);
+
+    const grid=document.createElement("div");
+    grid.className="grid";
+
+    ["B","I","N","G","O"].forEach(l=>{
+      const e=document.createElement("div");
+      e.className="cell head";
+      e.textContent=l;
+      grid.appendChild(e);
+    });
+
+    for(let r=0;r<5;r++){
+      for(let c=0;c<5;c++){
+        const e=document.createElement("div");
+        e.className="cell";
+        const v=r===2&&c===2?"FREE":cardValue(p,c,r);
+        e.textContent=v??"—";
+
+        if(v==="FREE")e.classList.add("free","marked");
+        else if(calls.includes(Number(v)))e.classList.add("marked");
+
+        grid.appendChild(e);
+      }
+    }
+    box.appendChild(grid);
+    root.appendChild(box);
+  });
+
+  if(roomData.gameWon){
+    setStatus("🎉 BINGO! "+(roomData.winnerName||"A player")+" wins! The game has stopped.");
+  }
+}
+
+async function createRoom(){
+  if(!user){setStatus("Signing in… try again in a moment.");return;}
+
+  $("createBtn").disabled=true;
+  setStatus("Creating room…");
+
+  const name=cleanName();
+  roomId=Array.from({length:6},()=>"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"[rand(0,35)]).join("");
+
+  const player={
+    uid:user.uid,
+    name,
+    cardId:String(rand(100000,999999)),
+    cols:makeCard().cols,
+    joinedAt:Date.now()
+  };
+
+  try{
+    await setDoc(doc(db,"rooms",roomId),{
+      hostUid:user.uid,
+      hostName:name,
+      gameStarted:false,
+      gameWon:false,
+      calledNumbers:[],
+      winnerUid:null,
+      winnerName:null,
+      createdAt:serverTimestamp()
+    });
+
+    await setDoc(playerRef(user.uid),player);
+    isHost=true;
+    showRoom();
+    listenRoom();
+    setStatus("Room created. Share the code with your players.");
+  }catch(e){
+    roomId=null;
+    setStatus("Could not create room: "+friendlyError(e));
+  }finally{
+    $("createBtn").disabled=false;
+  }
+}
+
+async function joinRoom(){
+  if(!user){setStatus("Signing in… try again in a moment.");return;}
+
+  const code=$("roomInput").value.trim().toUpperCase();
+  if(!/^[A-Z0-9]{6}$/.test(code)){
+    alert("Enter the 6-character room code.");
+    return;
+  }
+
+  try{
+    const ref=doc(db,"rooms",code);
+    const snap=await getDoc(ref);
+
+    if(!snap.exists()){
+      alert("Room not found. Check the code.");
+      return;
+    }
+
+    const data=snap.data();
+    if(data.gameWon){
+      alert("This round has ended. Ask the host to start a new round.");
+      return;
+    }
+
+    roomId=code;
+    roomData=data;
+    isHost=data.hostUid===user.uid;
+
+    const pRef=playerRef(user.uid);
+    const old=await getDoc(pRef);
+
+    const player=old.exists()?old.data():{
+      uid:user.uid,
+      name:cleanName(),
+      cardId:String(rand(100000,999999)),
+      cols:makeCard().cols,
+      joinedAt:Date.now()
+    };
+
+    await setDoc(pRef,player,{merge:true});
+    showRoom();
+    listenRoom();
+    setStatus("Connected to room "+roomId+".");
+  }catch(e){
+    roomId=null;
+    setStatus("Could not join room: "+friendlyError(e));
+  }
+}
+
+async function checkAutomaticWinner(){
+  if(!isHost||!roomId||!roomData?.gameStarted||roomData?.gameWon||checkingAutomaticWinner)return;
+
+  const winner=playerDocs.find(p=>cardHasWin(p,roomData.calledNumbers||[]));
+  if(!winner)return;
+
+  checkingAutomaticWinner=true;
+  try{
+    const activeRoom=roomRef();
+
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(activeRoom);
+      if(!snap.exists())return;
+
+      const latest=snap.data();
+      if(latest.hostUid!==user.uid||!latest.gameStarted||latest.gameWon)return;
+      if(!cardHasWin(winner,latest.calledNumbers||[]))return;
+
+      tx.update(activeRoom,{
+        gameWon:true,
+        gameStarted:false,
+        winnerUid:winner.uid,
+        winnerName:winner.name,
+        winningCardId:winner.cardId,
+        endedAt:serverTimestamp()
+      });
+    });
+  }catch(e){
+    setStatus("Winner check failed: "+friendlyError(e));
+  }finally{
+    checkingAutomaticWinner=false;
+  }
+}
+
+function syncAutoCaller(){
+  const shouldRun=isHost&&!!roomId&&!!roomData?.gameStarted&&
+    !roomData?.gameWon&&(roomData?.calledNumbers||[]).length<75;
+
+  if(!shouldRun){
+    if(autoCallTimer){
+      clearInterval(autoCallTimer);
+      autoCallTimer=null;
+    }
+    return;
+  }
+
+  if(!autoCallTimer){
+    autoCallTimer=setInterval(async()=>{
+      if(autoCallBusy)return;
+      if(!isHost||!roomData?.gameStarted||roomData?.gameWon){
+        syncAutoCaller();
+        return;
+      }
+
+      autoCallBusy=true;
+      try{
+        await callNumber();
+      }finally{
+        autoCallBusy=false;
+      }
+    },AUTO_CALL_INTERVAL_MS);
+  }
+}
+
+function listenRoom(){
+  if(roomUnsub)roomUnsub();
+  if(playerUnsub)playerUnsub();
+
+  roomUnsub=onSnapshot(roomRef(),snap=>{
+    if(!snap.exists()){
+      setStatus("This room no longer exists.");
+      return;
+    }
+
+    roomData=snap.data();
+    render();
+    checkAutomaticWinner();
+    syncAutoCaller();
+  },e=>setStatus("Room sync error: "+friendlyError(e)));
+
+  playerUnsub=onSnapshot(collection(db,"rooms",roomId,"players"),snap=>{
+    playerDocs=snap.docs.map(d=>d.data())
+      .sort((a,b)=>(a.joinedAt||0)-(b.joinedAt||0));
+
+    render();
+    checkAutomaticWinner();
+  },e=>setStatus("Player sync error: "+friendlyError(e)));
+}
+
+async function startGame(){
+  if(!isHost||!roomId)return;
+
+  try{
+    await updateDoc(roomRef(),{
+      gameStarted:true,
+      gameWon:false,
+      calledNumbers:[],
+      winnerUid:null,
+      winnerName:null,
+      roundStartedAt:Date.now()
+    });
+
+    setStatus("Game started. Numbers will be called every 5 seconds.");
+  }catch(e){
+    setStatus("Start failed: "+friendlyError(e));
+  }
+}
+
+async function callNumber(){
+  if(!isHost||!roomId||!roomData?.gameStarted||roomData?.gameWon)return;
+
+  try{
+    let calledN=null;
+
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(roomRef());
+      if(!snap.exists())throw new Error("Room not found.");
+
+      const data=snap.data();
+      if(data.hostUid!==user.uid||!data.gameStarted||data.gameWon){
+        throw new Error("Game is not active.");
+      }
+
+      const calls=data.calledNumbers||[];
+      if(calls.length>=75)throw new Error("All numbers have been called.");
+
+      let n;
+      do{n=rand(1,75);}while(calls.includes(n));
+
+      calledN=n;
+      tx.update(roomRef(),{calledNumbers:[...calls,n]});
+    });
+
+    setStatus("Next number will be called in 5 seconds.");
+
+    if(calledN!==null&&"speechSynthesis"in window){
+      speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(letterFor(calledN)+" "+calledN);
+      u.rate=.9;
+      speechSynthesis.speak(u);
+    }
+  }catch(e){
+    setStatus("Could not call number: "+friendlyError(e));
+  }
+}
+
+async function newRound(){
+  if(!isHost||!roomId)return;
+
+  try{
+    await updateDoc(roomRef(),{
+      gameStarted:false,
+      gameWon:false,
+      calledNumbers:[],
+      winnerUid:null,
+      winnerName:null,
+      roundStartedAt:Date.now()
+    });
+
+    setStatus("Round reset. Press Start Game when ready.");
+  }catch(e){
+    setStatus("Could not reset round: "+friendlyError(e));
+  }
+}
+
+async function leaveRoom(){
+  if(autoCallTimer){
+    clearInterval(autoCallTimer);
+    autoCallTimer=null;
+  }
+
+  if(roomUnsub)roomUnsub();
+  if(playerUnsub)playerUnsub();
+
+  roomUnsub=playerUnsub=null;
+  roomId=null;
+  roomData=null;
+  playerDocs=[];
+  isHost=false;
+
+  $("roomPanel").classList.add("hidden");
+  $("entryPanel").classList.remove("hidden");
+  $("roomInput").value="";
+  setStatus("Left room.");
+}
+
+/* Wallet: demo requests only. Payo is not connected here. */
+let walletReturnToRoom=false;
+
+function openWallet(){
+  walletReturnToRoom=!$("roomPanel").classList.contains("hidden");
+
+  $("entryPanel").classList.add("hidden");
+  $("roomPanel").classList.add("hidden");
+  $("walletPanel").classList.remove("hidden");
+
+  $("walletAccountState").textContent=user
+    ?"Demo account ready. No SMS verification."
+    :"Connecting to demo account…";
+
+  loadWalletHistory().catch(e=>
+    walletStatus("Could not load history: "+friendlyError(e))
+  );
+}
+
+function closeWallet(){
+  $("walletPanel").classList.add("hidden");
+
+  if(walletReturnToRoom&&roomId){
+    $("roomPanel").classList.remove("hidden");
+  }else{
+    $("entryPanel").classList.remove("hidden");
+  }
+}
+
+function walletStatus(message){
+  $("walletStatus").textContent=message;
+}
+
+function validWalletPhone(phone){
+  return /^\+251[0-9]{9}$/.test(phone);
+}
+
+async function requestWalletDemo(type){
+  if(!user)throw new Error("Wait for the demo account to connect, then try again.");
+
+  const amount=Number($(type==="deposit"?"depositAmount":"withdrawAmount").value);
+  const phone=(type==="withdraw"?$("payoutPhone"):$("contactPhone")).value.trim();
+
+  if(!Number.isFinite(amount)||amount<1||amount>100000){
+    walletStatus("Enter an amount between 1 and 100000 ETB.");
+    return;
+  }
+
+  if(phone&&!validWalletPhone(phone)){
+    walletStatus("Phone must be blank or use +251 followed by 9 digits.");
+    return;
+  }
+
+  if(type==="withdraw"&&!phone){
+    walletStatus("Enter a payout phone number for this demo request.");
+    return;
+  }
+
+  await addDoc(collection(db,"walletRequests"),{
+    uid:user.uid,
+    type,
+    amount,
+    phone,
+    status:"Demo_only",
+    createdAt:serverTimestamp()
+  });
+
+  walletStatus("Demo request saved. No money was transferred.");
+  $(type==="deposit"?"depositAmount":"withdrawAmount").value="";
+  await loadWalletHistory();
+}
+
+async function loadWalletHistory(){
+  if(!user){
+    $("walletHistory").textContent="Demo account is not connected yet.";
+    return;
+  }
+
+  const result=await getDocs(
+    query(collection(db,"walletRequests"),where("uid","==",user.uid))
+  );
+
+  const root=$("walletHistory");
+  root.replaceChildren();
+
+  if(result.empty){
+    root.textContent="No requests yet.";
+    return;
+  }
+
+  result.docs.forEach(d=>{
+    const x=d.data();
+    const item=document.createElement("p");
+    item.textContent=
+      `${String(x.type||"request").toUpperCase()} — ${x.amount} ETB — Demo only — ${x.status||"pending"}`;
+    root.appendChild(item);
+  });
+}
+
+/* Button connections */
+$("walletFromEntry").addEventListener("click",openWallet);
+$("walletFromRoom").addEventListener("click",openWallet);
+$("walletBackBtn").addEventListener("click",closeWallet);
+
+$("depositBtn").addEventListener("click",async()=>{
+  try{
+    await requestWalletDemo("deposit");
+  }catch(e){
+    walletStatus("Could not save demo request: "+friendlyError(e));
+  }
+});
+
+$("withdrawBtn").addEventListener("click",async()=>{
+  try{
+    await requestWalletDemo("withdraw");
+  }catch(e){
+    walletStatus("Could not save demo request: "+friendlyError(e));
+  }
+});
+
+$("refreshWallet").addEventListener("click",async()=>{
+  try{
+    await loadWalletHistory();
+    walletStatus("History refreshed.");
+  }catch(e){
+    walletStatus("Could not load history: "+friendlyError(e));
+  }
+});
+
+$("createBtn").addEventListener("click",createRoom);
+$("joinBtn").addEventListener("click",joinRoom);
+$("startBtn").addEventListener("click",startGame);
+$("callBtn").addEventListener("click",callNumber);
+$("newRoundBtn").addEventListener("click",newRound);
+$("leaveBtn").addEventListener("click",leaveRoom);
+
+/* Firebase sign-in */
+onAuthStateChanged(auth,async u=>{
+  if(u){
+    user=u;
+    setStatus("Signed in. Create a room or join with a code.");
+    $("walletAccountState").textContent="Demo account ready. No SMS verification.";
+  }else{
+    try{
+      await signInAnonymously(auth);
+    }catch(e){
+      const message="Sign-in failed: "+friendlyError(e)+
+        " Enable Anonymous sign-in in Firebase Console.";
+
+      setStatus(message);
+      $("walletAccountState").textContent=message;
+      walletStatus(message);
+    }
+  }
+});
+</script>
+</body>
+</html>
+
