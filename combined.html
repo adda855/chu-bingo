@@ -655,11 +655,13 @@ $("walletFromEntry").addEventListener("click",openWallet);
 $("walletFromRoom").addEventListener("click",openWallet);
 $("walletBackBtn").addEventListener("click",closeWallet);
 
-$("depositBtn").addEventListener("click",async()=>{
+$$("depositBtn").addEventListener("click",async()=>{
   try{
-    await requestWalletDemo("deposit");
+    await requestWalletDeposit();
   }catch(e){
-    walletStatus("Could not save demo request: "+friendlyError(e));
+    walletStatus("Deposit error: "+friendlyError(e));
+  }
+});
   }
 });
 
