@@ -4,21 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CHU Bingo - Wallet</title>
-<style>
-*{box-sizing:border-box}
-body{
-  margin:0;padding:20px;background:#071426;
-  color:#f4f7fb;font-family:Arial,sans-serif
-}
-.container{max-width:600px;margin:auto}
-header{text-align:center;padding:12px 0 20px}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CHU Bingo - Wallet</title>
+<title>CHU Bingo - Cash Wallet</title>
 <style>
 *{box-sizing:border-box}
 body{
@@ -34,16 +20,24 @@ h1{color:#ffd43b;margin-bottom:6px}
   border-radius:14px;padding:20px;margin-bottom:16px
 }
 .balance{text-align:center;background:linear-gradient(135deg,#16395b,#10233c)}
-.balance h2{font-size:15px;color:#bdcde0;font-weight:normal}
-#balance{font-size:36px;font-weight:bold;color:#ffd43b;margin:14px 0}
-.status{
-  background:#49272d;color:#ffd0d0;border-radius:8px;
-  padding:14px;line-height:1.6;font-size:14px
+#balance{font-size:30px;font-weight:bold;color:#ffd43b;margin:14px 0}
+input,select{
+  width:100%;padding:13px;margin:8px 0;
+  border:1px solid #38516f;border-radius:8px;
+  background:#071426;color:white;font-size:16px
 }
 button{
-  width:100%;padding:13px;margin-top:12px;border:0;
-  border-radius:9px;font-size:16px;font-weight:bold;
-  background:#24486b;color:white;cursor:not-allowed
+  width:100%;padding:14px;margin-top:12px;
+  border:0;border-radius:9px;font-size:16px;
+  font-weight:bold;background:#ffd43b;color:#152033;
+  cursor:pointer
+}
+button:disabled{opacity:.5;cursor:not-allowed}
+.withdraw{background:#24486b;color:white}
+.status{
+  padding:13px;border-radius:8px;
+  background:#172a41;line-height:1.6;
+  font-size:14px;overflow-wrap:anywhere
 }
 .small{font-size:12px;line-height:1.6}
 footer{text-align:center;color:#8fa2ba;font-size:12px;padding:10px}
@@ -51,138 +45,203 @@ footer{text-align:center;color:#8fa2ba;font-size:12px;padding:10px}
 </head>
 <body>
 <div class="container">
-  <header>
-    <h1>🎱 CHU BINGO</h1>
-    <div class="subtitle">Player Wallet</div>
-  </header>
 
-  <div class="card balance">
-    <h2>Available ETB Balance</h2>
-    <div id="balance">Not available</div>
-    <div class="subtitle">Noverified wallet balance is connected.</div>
-  </div>
+<header>
+<h1>🎱 CHU BINGO</h1>
+<div class="subtitle">Player Cash Wallet</div>
+</header>
 
-  <div class="card">
-    <h3>💳 Deposits</h3>
-    <div class="status">
-      Payo payment connection is not active in this wallet yet.
-      No deposit has been received or credited.
-    </div>
-    <button disabled>Deposits unavailable</button>
-    <p class="small">
-      Do not transfer money using this screen. A payment link and
-      verified payment confirmation must be implemented first.
-    </p>
-  </div>
-
-  <div class="card">
-    <h3>🏧 Withdrawals</h3>
-    <div class="status">
-      No verified wallet balance or payout connection is available.
-      No withdrawal can currently be submitted.
-    </div>
-    <button disabled>Withdrawals unavailable</button>
-  </div>
-
-  <div class="card">
-    <h3>📜 Transaction History</h3>
-    <p class="small">
-      No verified transactions are connected to this wallet.
-      Transactions will appear here after a secure backend is implemented.
-    </p>
-  </div>
-
-  <div class="card">
-    <h3>Payment information</h3>
-    <p class="small">
-      CHU Bingo does not currently process deposits or withdrawals
-      through this page. No demo credits are displayed as real money.
-      Payment and any wagering features require the applicable
-      provider and regulatory approvals.
-    </p>
-  </div>
-
-  <footer>CHU Bingo · Wallet</footer>
+<div class="card balance">
+<h3>Available Cash Balance</h3>
+<div id="balance">Not connected</div>
+<div class="small">ETB · Verified balance only</div>
 </div>
-</body>
-</html>
 
-h1{color:#ffd43b;margin-bottom:6px}
-.subtitle,.small{color:#aebed1}
-.card{
-  background:#10233c;border:1px solid #243b59;
-  border-radius:14px;padding:20px;margin-bottom:16px
-}
-.balance{text-align:center;background:linear-gradient(135deg,#16395b,#10233c)}
-.balance h2{font-size:15px;color:#bdcde0;font-weight:normal}
-#balance{font-size:36px;font-weight:bold;color:#ffd43b;margin:14px 0}
-.status{
-  background:#49272d;color:#ffd0d0;border-radius:8px;
-  padding:14px;line-height:1.6;font-size:14px
-}
-button{
-  width:100%;padding:13px;margin-top:12px;border:0;
-  border-radius:9px;font-size:16px;font-weight:bold;
-  background:#24486b;color:white;cursor:not-allowed
-}
-.small{font-size:12px;line-height:1.6}
-footer{text-align:center;color:#8fa2ba;font-size:12px;padding:10px}
-</style>
-</head>
-<body>
-<div class="container">
-  <header>
-    <h1>🎱 CHU BINGO</h1>
-    <div class="subtitle">Player Wallet</div>
-  </header>
+<div class="card">
+<h3>💳 Deposit Money</h3>
+<p class="small">Pay securely through Payo checkout.</p>
 
-  <div class="card balance">
-    <h2>Available ETB Balance</h2>
-    <div id="balance">Not available</div>
-    <div class="subtitle">No verified wallet balance is connected.</div>
-  </div>
+<input id="depositAmount"
+type="number" min="1" max="100000"
+step="0.01" placeholder="Enter deposit amount (ETB)">
 
-  <div class="card">
-    <h3>💳 Deposits</h3>
-    <div class="status">
-      Payo payment connection is not active in this wallet yet.
-      No deposit has been received or credited.
-    </div>
-    <button disabled>Deposits unavailable</button>
-    <p class="small">
-      Do not transfer money using this screen. A payment link and
-      verified payment confirmation must be implemented first.
-    </p>
-  </div>
+<button id="depositBtn" disabled>
+Connect to Payo
+</button>
 
-  <div class="card">
-    <h3>🏧 Withdrawals</h3>
-    <div class="status">
-      No verified wallet balance or payout connection is available.
-      No withdrawal can currently be submitted.
-    </div>
-    <button disabled>Withdrawals unavailable</button>
-  </div>
-
-  <div class="card">
-    <h3>📜 Transaction History</h3>
-    <p class="small">
-      No verified transactions are connected to this wallet.
-      Transactions will appear here after a secure backend is implemented.
-    </p>
-  </div>
-
-  <div class="card">
-    <h3>Payment information</h3>
-    <p class="small">
-      CHU Bingo does not currently process deposits or withdrawals
-      through this page. No demo credits are displayed as real money.
-      Payment and any wagering features require the applicable
-      provider and regulatory approvals.
-    </p>
-  </div>
-
-  <footer>CHU Bingo · Wallet</footer>
+<div id="depositStatus" class="status">
+Connecting to Firebase...
 </div>
+</div>
+
+<div class="card">
+<h3>🏧 Withdraw Money</h3>
+
+<input id="withdrawAmount"
+type="number" min="1" max="100000"
+placeholder="Withdrawal amount (ETB)">
+
+<select id="withdrawMethod">
+<option value="Telebirr">Telebirr</option>
+<option value="Bank">Bank transfer</option>
+</select>
+
+<input id="withdrawPhone"
+type="tel" placeholder="Payment account / phone number">
+
+<button class="withdraw" id="withdrawBtn" disabled>
+Withdrawals not yet available
+</button>
+
+<div class="small">
+Withdrawal requests require verified wallet balances,
+authorized payout processing and additional backend security.
+</div>
+</div>
+
+<div class="card">
+<h3>📜 Transaction History</h3>
+<div id="history" class="status">
+Verified transaction history is not yet connected.
+</div>
+</div>
+
+<div class="card">
+<h3>Payment Security</h3>
+<p class="small">
+Only confirmed payments can qualify for wallet credit.
+Creating a Payo order does not mean payment has succeeded.
+Wallet balances must be verified by the secure backend.
+</p>
+</div>
+
+<footer>CHU Bingo · Cash Wallet</footer>
+</div>
+
+<script type="module">
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+
+import {
+ getAuth,signInAnonymously,onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyD42JZbRUjqVw0sqEO5aVA3HSdNQliB58o",
+ authDomain:"chubingo.firebaseapp.com",
+ projectId:"chubingo",
+ storageBucket:"chubingo.firebasestorage.app",
+ messagingSenderId:"420369208507",
+ appId:"1:420369208507:web:482edd0a65c65d06b6859e",
+ measurementId:"G-VCZR013WT4"
+};
+
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+
+const WORKER_URL=
+"https://chu-bingo-bot.bobitesfaye600.workers.dev";
+
+const $=id=>document.getElementById(id);
+
+let currentUser=null;
+let busy=false;
+
+function message(text,error=false){
+ $("depositStatus").textContent=text;
+ $("depositStatus").style.background=
+ error?"#49272d":"#172a41";
+}
+
+async function startAuthentication(){
+ try{
+  if(!auth.currentUser){
+   await signInAnonymously(auth);
+  }
+ }catch(e){
+  message("Firebase connection failed: "+e.message,true);
+ }
+}
+
+onAuthStateChanged(auth,user=>{
+ currentUser=user;
+ $("depositBtn").disabled=!user;
+ $("depositBtn").textContent=
+ user?"Continue to Payo Payment":"Connecting...";
+ $("balance").textContent=
+ "Not connected";
+ if(user){
+  message("Firebase connected. You can create a Payo payment order.");
+ }
+});
+
+startAuthentication();
+
+$("depositBtn").addEventListener("click",async()=>{
+ if(busy)return;
+
+ const amount=Number($("depositAmount").value);
+
+ if(!currentUser){
+  message("Please wait for Firebase authentication.",true);
+  return;
+ }
+
+ if(!Number.isFinite(amount)||amount<1||amount>100000){
+  message("Enter an amount between 1 and 100000 ETB.",true);
+  return;
+ }
+
+ busy=true;
+ $("depositBtn").disabled=true;
+ $("depositBtn").textContent="Creating payment...";
+
+ try{
+  const token=await currentUser.getIdToken(true);
+
+  const response=await fetch(
+   WORKER_URL+"/payo/create-order",
+   {
+    method:"POST",
+    headers:{
+     "Content-Type":"application/json",
+     "Authorization":"Bearer "+token
+    },
+    body:JSON.stringify({
+     amount:amount
+    })
+   }
+  );
+
+  const result=await response.json();
+
+  if(!response.ok||!result.success){
+   throw new Error(result.error||"Payo order creation failed.");
+  }
+
+  if(!result.paymentUrl){
+   throw new Error("Payo did not return a payment URL.");
+  }
+
+  message("Payment order created. Opening Payo checkout...");
+
+  window.location.href=result.paymentUrl;
+
+ }catch(e){
+  message("Payment error: "+e.message,true);
+  busy=false;
+  $("depositBtn").disabled=false;
+  $("depositBtn").textContent="Continue to Payo Payment";
+ }
+});
+
+$("withdrawBtn").addEventListener("click",()=>{
+ message(
+  "Withdrawals are not enabled. Secure payout processing is not yet implemented.",
+  true
+ );
+});
+
+</script>
 </body>
 </html>
