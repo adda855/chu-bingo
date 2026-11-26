@@ -581,7 +581,8 @@ function openWallet() {
     ? "Account connected. Payo payment connection is pending."
     : "Connecting to account…";
 
-  loadWalletHistory();
+  $("walletHistory").textContent =
+  "Waiting for secure wallet transaction history.";
 }
 
 function closeWallet() {
